@@ -106,6 +106,9 @@ class ModernVideoPlayer(QMainWindow):
         dialog = PlaylistModal(self, self.playlist)
         if dialog.exec():  # Se o usuário selecionar um vídeo e confirmar
             if dialog.selected_video:
+                self.current_video_index = (
+                    dialog.selected_index
+                )  # Atualiza o índice atual
                 self.open_file(dialog.selected_video)  # Reproduz o vídeo escolhido
 
     def open_file_dialog(self):
@@ -135,6 +138,7 @@ class ModernVideoPlayer(QMainWindow):
 
     def play_next(self):
         """Reproduz o próximo vídeo na playlist."""
+        print(self.current_video_index)
         if self.current_video_index < len(self.playlist) - 1:
             self.current_video_index += 1
             self.open_file(self.playlist[self.current_video_index])

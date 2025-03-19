@@ -94,11 +94,8 @@ class PlaylistModal(QDialog):
 
     def select_video(self):
         """Pega o vídeo selecionado e fecha o modal."""
-        selected_item = self.list_widget.currentItem()
-        if selected_item:
-            video_name = selected_item.text()
-            for video in self.playlist:
-                if os.path.basename(video) == video_name:
-                    self.selected_video = video
-                    break
+        index = self.list_widget.currentRow()
+        if index >= 0 and index < len(self.playlist):
+            self.selected_video = self.playlist[index]
+            self.selected_index = index  # Armazena o índice selecionado
         self.accept()  # Fecha o modal

@@ -186,12 +186,13 @@ class ZoomModal(QDialog):
 
     def reset_zoom(self):
         """Redefine para valores 'padrão' (ou defina como preferir)"""
-        self.zoom_value = 40
-        self.zoom_scale_x = 80
-        self.zoom_scale_y = 45
-        self.zoom_area.setFixedSize(self.zoom_scale_x, self.zoom_scale_y)
-        self.zoom_area.move(0, 0)
-        self.zoom_slider.setValue(self.zoom_value)
+        if self.zoom_value != 40:
+            self.zoom_value = 40
+            self.zoom_scale_x = 80
+            self.zoom_scale_y = 45
+            self.zoom_area.setFixedSize(self.zoom_scale_x, self.zoom_scale_y)
+            self.zoom_area.move(0, 0)
+            self.zoom_slider.setValue(self.zoom_value)
 
     def limit_zoom_area(self):
         """Garante que a área de zoom não saia do preview"""
