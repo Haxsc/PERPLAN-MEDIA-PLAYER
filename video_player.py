@@ -501,8 +501,6 @@ class ModernVideoPlayer(QMainWindow):
         """Captura eventos de teclado e executa ações do player com os binds do usuário"""
         key_name = self.get_key_name(event.key())
 
-        print(key_name)
-
         if key_name.upper() == self.keybinds["Pausar/Reproduzir"].upper():
             self.play_pause()
         elif key_name == self.keybinds["Avancar 1 Frame"].upper():
@@ -510,7 +508,6 @@ class ModernVideoPlayer(QMainWindow):
         elif key_name == self.keybinds["Retroceder 1 Frame"].upper():
             self.on_previous_frame()
         elif key_name == self.keybinds["Avançar 1s"].upper():
-            print("Avançar 1s")
             self.skip_seconds(1)
         elif key_name == self.keybinds["Retroceder 1s"].upper():
             self.skip_seconds(-1)
