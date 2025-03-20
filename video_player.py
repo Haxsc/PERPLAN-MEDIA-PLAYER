@@ -280,8 +280,7 @@ class ModernVideoPlayer(QMainWindow):
                     color: white;
                     font-size: 15px;
                     font-weight: bold;
-                    padding: 12px 20p
-                    x;
+                    padding: 12px 20px;
                     border-radius: 50px;
                 }}
             """
