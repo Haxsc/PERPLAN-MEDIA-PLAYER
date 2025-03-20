@@ -230,9 +230,9 @@ class ModernVideoPlayer(QMainWindow):
         """Go backward one frame"""
         if self.mediaplayer.is_playing():
             self.pause()
-        next_frame_time = self.mediaplayer.get_time() - self.mspf()
-
-        self.mediaplayer.set_time(next_frame_time)
+        current_frame = self.mediaplayer.get_time()
+        new_frame = max(0, current_frame - 30)
+        self.mediaplayer.set_time(new_frame)
 
     def change_volume(self, amount):
         """Ajusta o volume do player"""
