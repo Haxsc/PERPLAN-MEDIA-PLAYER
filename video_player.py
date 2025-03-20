@@ -26,8 +26,8 @@ class ModernVideoPlayer(QMainWindow):
             "Pausar/Reproduzir": "Space",
             "Avancar 1 Frame": "E",
             "Retroceder 1 Frame": "Q",
-            "Avançar 5s": "Right",
-            "Retroceder 5s": "Left",
+            "Avançar 1s": "Right",
+            "Retroceder 1s": "Left",
             "Aumentar Volume": "Up",
             "Diminuir Volume": "Down",
             "Tela Cheia": "F",
@@ -469,29 +469,29 @@ class ModernVideoPlayer(QMainWindow):
     def get_key_name(self, key):
         """Converte o código da tecla em um nome legível."""
         if key == Qt.Key_Space:
-            return "Space"
+            return "SPACE"
         elif key == Qt.Key_Return or key == Qt.Key_Enter:
-            return "Enter"
+            return "ENTER"
         elif key == Qt.Key_Backspace:
-            return "Backspace"
+            return "BACKSPACE"
         elif key == Qt.Key_Shift:
-            return "Shift"
+            return "SHIFT"
         elif key == Qt.Key_Control:
-            return "Ctrl"
+            return "CTRL"
         elif key == Qt.Key_Alt:
-            return "Alt"
+            return "ALT"
         elif key == Qt.Key_Escape:
-            return "Escape"
+            return "ESCAPE"
         elif key == Qt.Key_Tab:
-            return "Tab"
+            return "TAB"
         elif key == Qt.Key_Left:
-            return "Left"
+            return "LEFT"
         elif key == Qt.Key_Right:
-            return "Right"
+            return "RIGHT"
         elif key == Qt.Key_Up:
-            return "Up"
+            return "UP"
         elif key == Qt.Key_Down:
-            return "Down"
+            return "DOWN"
         else:
             return (
                 chr(key).upper() if 32 <= key <= 126 else ""
@@ -501,16 +501,19 @@ class ModernVideoPlayer(QMainWindow):
         """Captura eventos de teclado e executa ações do player com os binds do usuário"""
         key_name = self.get_key_name(event.key())
 
+        print(key_name)
+
         if key_name.upper() == self.keybinds["Pausar/Reproduzir"].upper():
             self.play_pause()
         elif key_name == self.keybinds["Avancar 1 Frame"].upper():
             self.step_frame()
         elif key_name == self.keybinds["Retroceder 1 Frame"].upper():
             self.on_previous_frame()
-        elif key_name == self.keybinds["Avançar 5s"].upper():
-            self.skip_seconds(5)
-        elif key_name == self.keybinds["Retroceder 5s"].upper():
-            self.skip_seconds(-5)
+        elif key_name == self.keybinds["Avançar 1s"].upper():
+            print("Avançar 1s")
+            self.skip_seconds(1)
+        elif key_name == self.keybinds["Retroceder 1s"].upper():
+            self.skip_seconds(-1)
         elif key_name == self.keybinds["Aumentar Volume"].upper():
             self.change_volume(10)
         elif key_name == self.keybinds["Diminuir Volume"].upper():
