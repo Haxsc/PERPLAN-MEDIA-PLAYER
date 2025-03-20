@@ -280,8 +280,9 @@ class ModernVideoPlayer(QMainWindow):
                     color: white;
                     font-size: 15px;
                     font-weight: bold;
-                    padding: 12px 20px;
-                    border-radius: 5px;
+                    padding: 12px 20p
+                    x;
+                    border-radius: 50px;
                 }}
             """
             )
@@ -320,7 +321,7 @@ class ModernVideoPlayer(QMainWindow):
                     font-size: 15px;
                     font-weight: bold;
                     padding: 12px 20px;
-                    border-radius: 5px;
+                    border-radius: 50px;
                 }}
             """
             )
