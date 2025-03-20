@@ -138,7 +138,6 @@ class ModernVideoPlayer(QMainWindow):
 
     def play_next(self):
         """Reproduz o próximo vídeo na playlist."""
-        print(self.current_video_index)
         if self.current_video_index < len(self.playlist) - 1:
             self.current_video_index += 1
             self.open_file(self.playlist[self.current_video_index])
@@ -245,6 +244,15 @@ class ModernVideoPlayer(QMainWindow):
         """Ajusta a velocidade do vídeo"""
         new_speed = max(
             0.5, min(32, self.speed_factor * factor)
+        )  # Mantém entre 0.5x e 4x
+        self.mediaplayer.set_rate(new_speed)
+        self.speed_factor = new_speed
+        self.notification(f"Speed: {new_speed:.2f}x", "rgba(189, 189, 189, 0.5)")
+
+    def increment_speed(self, factor):
+        """Ajusta a velocidade do vídeo"""
+        new_speed = max(
+            0.5, min(32, self.speed_factor + factor)
         )  # Mantém entre 0.5x e 4x
         self.mediaplayer.set_rate(new_speed)
         self.speed_factor = new_speed
@@ -513,6 +521,10 @@ class ModernVideoPlayer(QMainWindow):
             self.change_speed(2)
         elif key_name == self.keybinds["Diminuir Velocidade"].upper():
             self.change_speed(0.5)
+        elif key_name == "[":
+            self.increment_speed(0.1)
+        elif key_name == "]":
+            self.increment_speed(-0.1)
         else:
             super().keyPressEvent(event)
 
