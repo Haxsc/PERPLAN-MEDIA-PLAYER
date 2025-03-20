@@ -274,7 +274,6 @@ class ModernVideoPlayer(QMainWindow):
                     font-weight: bold;
                     padding: 12px 20px;
                     border-radius: 5px;
-                    outline: none;
                 }}
             """
             )
@@ -314,7 +313,6 @@ class ModernVideoPlayer(QMainWindow):
                     font-weight: bold;
                     padding: 12px 20px;
                     border-radius: 5px;
-                    outline: none;
                 }}
             """
             )

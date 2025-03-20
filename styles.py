@@ -31,7 +31,7 @@ def apply_styles(player):
             margin: -5px 0;
         }
         QFrame {
-            background-color: black;
+            background-color: #27272a;
         }
     """
     )
