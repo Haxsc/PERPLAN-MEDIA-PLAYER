@@ -103,7 +103,7 @@ class ModernVideoPlayer(QMainWindow):
             self.notification("Nenhum vídeo na playlist!", "red")
             return
 
-        dialog = PlaylistModal(self, self.playlist)
+        dialog = PlaylistModal(self, self.playlist, self.current_video_index)
         if dialog.exec():  # Se o usuário selecionar um vídeo e confirmar
             if dialog.selected_video:
                 self.current_video_index = (
