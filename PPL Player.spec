@@ -4,8 +4,14 @@
 a = Analysis(
     ['main.py'],
     pathex=[],
-    binaries=[],
-    datas=[('icons', 'icons')],
+    binaries=[
+        ('C:\\Program Files\\VideoLAN\\VLC\\libvlc.dll', '.'),
+        ('C:\\Program Files\\VideoLAN\\VLC\\libvlccore.dll', '.')
+    ],
+    datas=[
+        ('icons', 'icons'),
+        ('C:\\Program Files\\VideoLAN\\VLC\\plugins', 'plugins')
+    ],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},

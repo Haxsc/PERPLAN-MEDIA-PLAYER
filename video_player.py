@@ -58,7 +58,7 @@ class ModernVideoPlayer(QMainWindow):
 
         # Timer para atualização do slider
         self.timer = QTimer()
-        self.timer.setInterval(100)
+        self.timer.setInterval(300)
         self.timer.timeout.connect(self.update_ui)
 
     def create_ui(self):
@@ -415,9 +415,9 @@ class ModernVideoPlayer(QMainWindow):
 
             if (
                 self.current_frame
-                >= (self.max_frames * (1 / 4) - (self.speed_factor * 100))
+                >= (self.max_frames * (1 / 4) - (self.speed_factor * 300))
                 and self.current_frame
-                <= (self.max_frames * (1 / 4) + (self.speed_factor * 100))
+                <= (self.max_frames * (1 / 4) + (self.speed_factor * 300))
                 and not self.pauseAt_15
             ):
                 self.pauseAt_15 = True
@@ -430,9 +430,9 @@ class ModernVideoPlayer(QMainWindow):
                 )
             elif (
                 self.current_frame
-                >= (self.max_frames * (1 / 2) - (self.speed_factor * 100))
+                >= (self.max_frames * (1 / 2) - (self.speed_factor * 300))
                 and self.current_frame
-                <= (self.max_frames * (1 / 2) + (self.speed_factor * 100))
+                <= (self.max_frames * (1 / 2) + (self.speed_factor * 300))
                 and not self.pauseAt_30
             ):
                 self.pauseAt_15 = False
@@ -445,9 +445,9 @@ class ModernVideoPlayer(QMainWindow):
                 )
             elif (
                 self.current_frame
-                >= (self.max_frames * (3 / 4) - (self.speed_factor * 100))
+                >= (self.max_frames * (3 / 4) - (self.speed_factor * 300))
                 and self.current_frame
-                <= (self.max_frames * (3 / 4) + (self.speed_factor * 100))
+                <= (self.max_frames * (3 / 4) + (self.speed_factor * 300))
                 and not self.pauseAt_45
             ):
                 self.pauseAt_15 = False
@@ -458,14 +458,40 @@ class ModernVideoPlayer(QMainWindow):
                 self.notification(
                     "Pausado automaticamente, Lembre-se de salvar o progresso."
                 )
-        elif (
-            self.current_video_index != -1
-            and self.current_frame >= self.max_frames - 100
-        ):
-            self.pauseAt_15 = False
-            self.pauseAt_30 = False
-            self.pauseAt_45 = False
-            self.play_next()  # Passa para o próximo vídeo ao terminar
+            elif (
+                self.current_video_index != -1
+                and self.current_frame >= self.max_frames - 300
+            ):
+                self.pauseAt_15 = False
+                self.pauseAt_30 = False
+                self.pauseAt_45 = False
+                # self.play_next()  # Passa para o próximo vídeo ao terminar
+            else:
+                if (
+                    self.current_frame
+                    <= (self.max_frames * (1 / 4) - (self.speed_factor * 300))
+                    and self.pauseAt_15
+                ):
+                    print("reset 15")
+                    self.pauseAt_15 = False
+                elif (
+                    self.current_frame
+                    >= (self.max_frames * (1 / 4) - (self.speed_factor * 300))
+                    and self.current_frame
+                    <= (self.max_frames * (1 / 2) + (self.speed_factor * 300))
+                    and self.pauseAt_30
+                ):
+                    print("reset 30")
+                    self.pauseAt_30 = False
+                elif (
+                    self.current_frame
+                    >= (self.max_frames * (1 / 2) - (self.speed_factor * 300))
+                    and self.current_frame
+                    <= (self.max_frames * (3 / 4) + (self.speed_factor * 300))
+                    and self.pauseAt_45
+                ):
+                    print("reset 45")
+                    self.pauseAt_45 = False
 
     def resizeEvent(self, event):
         super().resizeEvent(event)
