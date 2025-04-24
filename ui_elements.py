@@ -5,6 +5,7 @@ from PySide6.QtWidgets import (
     QHBoxLayout,
     QVBoxLayout,
     QWidget,
+    QLabel,
 )
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QIcon
@@ -69,12 +70,21 @@ def create_ui(player):
     position_slider.sliderMoved.connect(player.set_position)
     position_slider.setFocusPolicy(Qt.NoFocus)
 
+    # Label do timer
+    timer_label = QLabel("00:00 / 00:00")
+    timer_label.setAlignment(Qt.AlignCenter)
+    timer_label.setFocusPolicy(Qt.NoFocus)
+    timer_label.setStyleSheet(
+        "color: white; background-color: transparent; font-size: 14px; font-weight: semibold;"
+    )
+
     # Layout dos botões
     controls_layout = QHBoxLayout()
     controls_layout.addWidget(play_button)
     controls_layout.addWidget(rewind_button)
     controls_layout.addWidget(skip_button)
     controls_layout.addWidget(position_slider)
+    controls_layout.addWidget(timer_label)
     controls_layout.addWidget(speed_button)
 
     # Header
@@ -104,4 +114,5 @@ def create_ui(player):
         rewind_button,
         speed_button,
         position_slider,
+        timer_label,
     )

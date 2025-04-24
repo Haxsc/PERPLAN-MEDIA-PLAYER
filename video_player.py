@@ -58,7 +58,7 @@ class ModernVideoPlayer(QMainWindow):
 
         # Timer para atualização do slider
         self.timer = QTimer()
-        self.timer.setInterval(300)
+        self.timer.setInterval(500)
         self.timer.timeout.connect(self.update_ui)
 
     def create_ui(self):
@@ -71,6 +71,7 @@ class ModernVideoPlayer(QMainWindow):
             self.rewind_button,
             self.speed_button,
             self.position_slider,
+            self.timer_label,
         ) = create_ui(self)
         # Cria e adiciona o overlay de desenho sobre o videoframe
 
@@ -412,86 +413,101 @@ class ModernVideoPlayer(QMainWindow):
             self.max_frames = self.mediaplayer.get_length()
             self.position_slider.setRange(0, int(self.max_frames))
             self.position_slider.setValue(int(self.current_frame))
+            # Converter milissegundos para segundos
+            current_seconds = int(self.current_frame / 1000)
+            max_seconds = int(self.max_frames / 1000)
 
-            if (
-                self.current_frame
-                >= (self.max_frames * (1 / 4) - (self.speed_factor * 300))
-                and self.current_frame
-                <= (self.max_frames * (1 / 4) + (self.speed_factor * 300))
-                and not self.pauseAt_15
-            ):
-                self.pauseAt_15 = True
-                self.pauseAt_30 = False
-                self.pauseAt_45 = False
+            # Obter minutos e segundos usando divmod
+            current_minutes, current_secs = divmod(current_seconds, 60)
+            max_minutes, max_secs = divmod(max_seconds, 60)
 
-                self.pause()
-                self.notification(
-                    "Pausado automaticamente, Lembre-se de salvar o progresso.",
-                )
-            elif (
-                self.current_frame
-                >= (self.max_frames * (1 / 2) - (self.speed_factor * 300))
-                and self.current_frame
-                <= (self.max_frames * (1 / 2) + (self.speed_factor * 300))
-                and not self.pauseAt_30
-            ):
-                self.pauseAt_15 = False
-                self.pauseAt_30 = True
-                self.pauseAt_45 = False
+            # Atualizar o label com formatação de dois dígitos para minutos e segundos
+            self.timer_label.setText(
+                f"{current_minutes:02}:{current_secs:02} / {max_minutes:02}:{max_secs:02}"
+            )
 
-                self.pause()
-                self.notification(
-                    "Pausado automaticamente, Lembre-se de salvar o progresso."
-                )
-            elif (
-                self.current_frame
-                >= (self.max_frames * (3 / 4) - (self.speed_factor * 300))
-                and self.current_frame
-                <= (self.max_frames * (3 / 4) + (self.speed_factor * 300))
-                and not self.pauseAt_45
-            ):
-                self.pauseAt_15 = False
-                self.pauseAt_30 = False
-                self.pauseAt_45 = True
-
-                self.pause()
-                self.notification(
-                    "Pausado automaticamente, Lembre-se de salvar o progresso."
-                )
-            elif (
-                self.current_video_index != -1
-                and self.current_frame >= self.max_frames - 300
-            ):
-                self.pauseAt_15 = False
-                self.pauseAt_30 = False
-                self.pauseAt_45 = False
-                # self.play_next()  # Passa para o próximo vídeo ao terminar
-            else:
+            if max_minutes > 50:
                 if (
                     self.current_frame
-                    <= (self.max_frames * (1 / 4) - (self.speed_factor * 300))
-                    and self.pauseAt_15
-                ):
-                    print("reset 15")
-                    self.pauseAt_15 = False
-                elif (
-                    self.current_frame
-                    >= (self.max_frames * (1 / 4) - (self.speed_factor * 300))
+                    >= (self.max_frames * (1 / 4) - (self.speed_factor * 500))
                     and self.current_frame
-                    <= (self.max_frames * (1 / 2) + (self.speed_factor * 300))
-                    and self.pauseAt_30
+                    <= (self.max_frames * (1 / 4) + (self.speed_factor * 500))
+                    and not self.pauseAt_15
                 ):
-                    print("reset 30")
+                    self.pauseAt_15 = True
                     self.pauseAt_30 = False
+                    self.pauseAt_45 = False
+
+                    self.pause()
+                    self.notification(
+                        "Pausado automaticamente, Lembre-se de salvar o progresso.",
+                    )
                 elif (
                     self.current_frame
-                    >= (self.max_frames * (1 / 2) - (self.speed_factor * 300))
+                    >= (self.max_frames * (1 / 2) - (self.speed_factor * 500))
                     and self.current_frame
-                    <= (self.max_frames * (3 / 4) + (self.speed_factor * 300))
-                    and self.pauseAt_45
+                    <= (self.max_frames * (1 / 2) + (self.speed_factor * 500))
+                    and not self.pauseAt_30
                 ):
-                    print("reset 45")
+                    self.pauseAt_15 = False
+                    self.pauseAt_30 = True
                     self.pauseAt_45 = False
+
+                    self.pause()
+                    self.notification(
+                        "Pausado automaticamente, Lembre-se de salvar o progresso."
+                    )
+                elif (
+                    self.current_frame
+                    >= (self.max_frames * (3 / 4) - (self.speed_factor * 500))
+                    and self.current_frame
+                    <= (self.max_frames * (3 / 4) + (self.speed_factor * 500))
+                    and not self.pauseAt_45
+                ):
+                    self.pauseAt_15 = False
+                    self.pauseAt_30 = False
+                    self.pauseAt_45 = True
+
+                    self.pause()
+                    self.notification(
+                        "Pausado automaticamente, Lembre-se de salvar o progresso."
+                    )
+                elif (
+                    self.current_video_index != -1
+                    and self.current_frame >= self.max_frames - 500
+                ):
+                    self.pauseAt_15 = False
+                    self.pauseAt_30 = False
+                    self.pauseAt_45 = False
+                else:
+                    if (
+                        self.current_frame
+                        <= (self.max_frames * (1 / 4) - (self.speed_factor * 500))
+                        and self.pauseAt_15
+                    ):
+                        self.pauseAt_15 = False
+                    elif (
+                        self.current_frame
+                        >= (self.max_frames * (1 / 4) - (self.speed_factor * 500))
+                        and self.current_frame
+                        <= (self.max_frames * (1 / 2) + (self.speed_factor * 500))
+                        and self.pauseAt_30
+                    ):
+                        self.pauseAt_30 = False
+                    elif (
+                        self.current_frame
+                        >= (self.max_frames * (1 / 2) - (self.speed_factor * 500))
+                        and self.current_frame
+                        <= (self.max_frames * (3 / 4) + (self.speed_factor * 500))
+                        and self.pauseAt_45
+                    ):
+                        self.pauseAt_45 = False
+            else:
+                if (
+                    self.current_video_index != -1
+                    and current_seconds + self.speed_factor >= max_seconds
+                ):
+                    self.play_next()
 
     def resizeEvent(self, event):
         super().resizeEvent(event)

@@ -1,0 +1,11 @@
+# Ignorar arquivos grandes de build
+*.exe
+*.zip
+*.pkg
+*.pyc
+build/
+dist/
+__pycache__/
+*.toc
+*.pyd
+*.spec
