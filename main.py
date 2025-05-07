@@ -3,15 +3,16 @@ import os
 from PySide6.QtWidgets import QApplication
 from PySide6.QtGui import QIcon
 from video_player import ModernVideoPlayer
-
-icon_path = os.path.join(os.path.dirname(__file__), "icons")
-
 import asyncio
 from threading import Thread
 
+icon_path = os.path.join(os.path.dirname(__file__), "icons")
+
+# PORTAS DA COMUNICACAO
+
 HOST = "localhost"
-PORT_SELF = 5005
-PORT_PEER = 5006
+MEDIA_PORT = 1337  # porta do server (recebimentos) onde vai vir do contador digital
+CONTADOR_PORT = 8001  # porta do client (envios) onde vai ser usado para estabelercer conecao e enviar informacoes
 
 
 async def handle_client(reader, writer):
@@ -26,16 +27,16 @@ async def handle_client(reader, writer):
 
 
 async def server():
-    server = await asyncio.start_server(handle_client, HOST, PORT_SELF)
-    print(f"[SERVER] Escutando em {HOST}:{PORT_SELF}")
+    server = await asyncio.start_server(handle_client, HOST, MEDIA_PORT)
+    print(f"[SERVER] Escutando em {HOST}:{MEDIA_PORT}")
     async with server:
         await server.serve_forever()
 
 
 async def client():
     try:
-        reader, writer = await asyncio.open_connection(HOST, PORT_PEER)
-        print(f"[CLIENT] Conectado ao peer em {HOST}:{PORT_PEER}")
+        reader, writer = await asyncio.open_connection(HOST, CONTADOR_PORT)
+        print(f"[CLIENT] Conectado ao peer em {HOST}:{CONTADOR_PORT}")
     except ConnectionRefusedError:
         print("[CLIENT] Não foi possível conectar, peer não disponível.")
         return
@@ -80,11 +81,13 @@ if __name__ == "__main__":
     app.setWindowIcon(QIcon(os.path.join(icon_path, "road.png")))
 
     # armazenamento de ARGS *FUTURO DINAMICO*
+
     # argv_1 = sys.argv[1]
     # argv_2 = sys.argv[2]
     # argv_3 = sys.argv[3]
 
     # Inicia o player normalmente
+
     player = ModernVideoPlayer()
     player.show()
 

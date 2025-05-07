@@ -1,8 +1,8 @@
 import asyncio
 
 HOST = "localhost"
-PORT_SELF = 5006  # Porta deste app
-PORT_PEER = 5005  # Porta do app principal
+CONTADOR_PORT = 8001  # Porta deste app
+MEDIA_PORT = 1337  # Porta do app principal
 
 
 async def handle_client(reader, writer):
@@ -17,16 +17,16 @@ async def handle_client(reader, writer):
 
 
 async def server():
-    server = await asyncio.start_server(handle_client, HOST, PORT_SELF)
-    print(f"[SERVER] Escutando em {HOST}:{PORT_SELF}")
+    server = await asyncio.start_server(handle_client, HOST, CONTADOR_PORT)
+    print(f"[SERVER] Escutando em {HOST}:{CONTADOR_PORT}")
     async with server:
         await server.serve_forever()
 
 
 async def client():
     try:
-        reader, writer = await asyncio.open_connection(HOST, PORT_PEER)
-        print(f"[CLIENT] Conectado ao peer em {HOST}:{PORT_PEER}")
+        reader, writer = await asyncio.open_connection(HOST, MEDIA_PORT)
+        print(f"[CLIENT] Conectado ao peer em {HOST}:{MEDIA_PORT}")
     except ConnectionRefusedError:
         print("[CLIENT] Não foi possível conectar, peer não disponível.")
         return
