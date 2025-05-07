@@ -3,7 +3,7 @@ import vlc
 import os
 from PySide6.QtWidgets import QMainWindow, QFileDialog, QLabel, QMenu, QDialog
 from PySide6.QtCore import Qt, QTimer, QPoint
-from PySide6.QtGui import QIcon, QAction, QKeyEvent, QFontMetrics
+from PySide6.QtGui import QIcon, QAction, QKeyEvent, QFontMetrics, QCursor
 from playlist import PlaylistModal
 from ui_elements import create_ui  # Importa a função para criar a UI
 from styles import apply_styles
@@ -61,6 +61,14 @@ class ModernVideoPlayer(QMainWindow):
         self.timer.setInterval(500)
         self.timer.timeout.connect(self.update_ui)
 
+        # # Controle de interface no fullscreen
+        # self.last_mouse_pos = QCursor.pos()
+
+        # self.mouse_check_timer = QTimer()
+        # self.mouse_check_timer.setInterval(500)  # Checagem de movimento
+        # self.mouse_check_timer.timeout.connect(self.check_mouse_activity)
+        # self.mouse_check_timer.start()
+
     def create_ui(self):
         """Cria a interface gráfica, delegando ao `ui_elements.py`."""
         (
@@ -72,8 +80,34 @@ class ModernVideoPlayer(QMainWindow):
             self.speed_button,
             self.position_slider,
             self.timer_label,
+            self.header_layaout,
         ) = create_ui(self)
         # Cria e adiciona o overlay de desenho sobre o videoframe
+
+    def hide_ui_elements(self):
+        self.open_button.hide()
+        self.play_button.hide()
+        self.skip_button.hide()
+        self.rewind_button.hide()
+        self.speed_button.hide()
+        self.position_slider.hide()
+        self.timer_label.hide()
+
+    def show_ui_elements(self):
+        self.open_button.show()
+        self.play_button.show()
+        self.skip_button.show()
+        self.rewind_button.show()
+        self.speed_button.show()
+        self.position_slider.show()
+        self.timer_label.show()
+
+    def check_mouse_activity(self):
+        current_pos = QCursor.pos()
+        if current_pos != self.last_mouse_pos:
+            self.last_mouse_pos = current_pos
+            print("Mouse se moveu!")
+            self.mouse_check_timer.start()  # Reinicia timer de ocultar elementos
 
     def apply_styles(self):
         """Aplica os estilos definidos no `styles.py`"""
@@ -264,6 +298,7 @@ class ModernVideoPlayer(QMainWindow):
         if exit_fullscreen or self.isFullScreen():
             self.showNormal()
         else:
+            self.hide_ui_elements()
             self.showFullScreen()
 
     def calculate_text_width(self, widget, text):

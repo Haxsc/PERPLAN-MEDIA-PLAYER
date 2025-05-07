@@ -115,4 +115,5 @@ def create_ui(player):
         speed_button,
         position_slider,
         timer_label,
+        header_layout,
     )
