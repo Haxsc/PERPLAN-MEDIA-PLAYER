@@ -13,7 +13,7 @@ icon_path = os.path.join(os.path.dirname(__file__), "icons")
 
 HOST = "localhost"
 MEDIA_PORT = 1337  # porta do server (recebimentos) onde vai vir do contador digital
-CONTADOR_PORT = 8001  # porta do client (envios) onde vai ser usado para estabelercer conecao e enviar informacoes
+CONTADOR_PORT = 3000  # porta do client (envios) onde vai ser usado para estabelercer conecao e enviar informacoes
 
 
 async def handle_client(reader, writer):

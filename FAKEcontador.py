@@ -1,7 +1,7 @@
 import asyncio
 
 HOST = "localhost"
-CONTADOR_PORT = 8001  # Porta deste app
+CONTADOR_PORT = 3000  # Porta deste app
 MEDIA_PORT = 1337  # Porta do app principal
 
 
