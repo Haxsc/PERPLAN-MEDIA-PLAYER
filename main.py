@@ -1,5 +1,6 @@
 import sys
 import os
+import argparse
 from PySide6.QtWidgets import QApplication
 from PySide6.QtGui import QIcon
 from video_player import ModernVideoPlayer
@@ -76,6 +77,36 @@ def run_asyncio_loop(loop):
     loop.run_forever()
 
 
+def parse_arguments():
+    parser = argparse.ArgumentParser(description="Aplicativo ModernVideoPlayer")
+
+    parser.add_argument("--croqui", type=str, help="Diretório do croqui")
+    parser.add_argument("--video", type=str, help="Diretório do vídeo")
+    # parser.add_argument('--opencoqui', action='store_true', help='Abrir automaticamente o croqui')
+
+    args = parser.parse_args()
+
+    # Normaliza e verifica os caminhos
+    if args.croqui:
+        croqui_path = os.path.normpath(args.croqui)
+        if not os.path.exists(croqui_path):
+            print(f"[ERRO] Diretório do croqui não existe: {croqui_path}")
+        else:
+            print(f"[OK] Croqui recebido: {croqui_path}")
+
+    if args.video:
+        video_path = os.path.normpath(args.video)
+        if not os.path.exists(video_path):
+            print(f"[ERRO] Diretório do vídeo não existe: {video_path}")
+        else:
+            print(f"[OK] Vídeo recebido: {video_path}")
+
+    # if args.opencoqui:
+    #     print("[INFO] Flag --opencoqui ativada")
+
+    return args
+
+
 if __name__ == "__main__":
     app = QApplication(sys.argv)  # Cria o QApplication antes de qualquer QWidget
     app.setWindowIcon(QIcon(os.path.join(icon_path, "road.png")))
@@ -85,6 +116,16 @@ if __name__ == "__main__":
     # argv_1 = sys.argv[1]
     # argv_2 = sys.argv[2]
     # argv_3 = sys.argv[3]
+
+    #################################
+    #
+    # EXEMPLO:
+    # args = parse_arguments()
+    #
+    # if args.opencoqui:
+    #   print("Abrindo croqui automaticamente...")
+    #
+    ################################
 
     # Inicia o player normalmente
 
