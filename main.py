@@ -6,14 +6,13 @@ from PySide6.QtGui import QIcon
 from video_player import ModernVideoPlayer
 import asyncio
 from threading import Thread
-
-icon_path = os.path.join(os.path.dirname(__file__), "icons")
-
-# PORTAS DA COMUNICACAO
-
-HOST = "localhost"
-MEDIA_PORT = 1337  # porta do server (recebimentos) onde vai vir do contador digital
-CONTADOR_PORT = 3000  # porta do client (envios) onde vai ser usado para estabelercer conecao e enviar informacoes
+from config import (
+    ICON_PATH,
+    HOST,
+    MEDIA_PORT,
+    CONTADOR_PORT,
+    SUPPORTED_VIDEO_EXTENSIONS
+)
 
 
 async def handle_client(reader, writer):
@@ -109,7 +108,7 @@ def parse_arguments():
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)  # Cria o QApplication antes de qualquer QWidget
-    app.setWindowIcon(QIcon(os.path.join(icon_path, "road.png")))
+    app.setWindowIcon(QIcon(os.path.join(ICON_PATH, "road.png")))
 
     # armazenamento de ARGS *FUTURO DINAMICO*
 
@@ -142,12 +141,10 @@ if __name__ == "__main__":
     # Inicia o servidor automaticamente
     start_server(loop)
 
-    # Verifica se o APP foi aberto com algum video ja linkado ou nao
+    # Check if app was opened with a video file
     if len(sys.argv) > 1:
         video_path = sys.argv[1]
-        if os.path.exists(video_path) and video_path.lower().endswith(
-            (".mp4", ".avi", ".mkv", ".dav")
-        ):
+        if os.path.exists(video_path) and video_path.lower().endswith(SUPPORTED_VIDEO_EXTENSIONS):
             player.playlist.append(video_path)
             player.current_video_index = 0
             player.open_file(video_path)

@@ -8,49 +8,42 @@ from playlist import PlaylistModal
 from ui_elements import create_ui  # Importa a função para criar a UI
 from styles import apply_styles
 from zoom import ZoomModal
-
-icon_path = os.path.join(os.path.dirname(__file__), "icons")
+from utils import format_time_range, clamp
+from config import (
+    APP_NAME,
+    DEFAULT_SIZE,
+    ICON_PATH,
+    UI_UPDATE_INTERVAL,
+    DEFAULT_KEYBINDS,
+    SPEED_OPTIONS,
+    NOTIFICATION_DURATION,
+    NOTIFICATION_COLORS,
+    DEFAULT_VIDEO_PATH,
+    VIDEO_FILTER,
+    SUPPORTED_VIDEO_EXTENSIONS,
+    AUTO_PAUSE_MIN_DURATION,
+    AUTO_PAUSE_POSITIONS
+)
 
 
 class ModernVideoPlayer(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("PPL Player")
-        self.resize(1280, 720)
+        self.setWindowTitle(APP_NAME)
+        self.resize(*DEFAULT_SIZE)
 
         # Instância do VLC
         self.instance = vlc.Instance()
         self.mediaplayer = self.instance.media_player_new()
 
-        self.keybinds = {
-            "Pausar/Reproduzir": "Space",
-            "Avancar 1 Frame": "E",
-            "Retroceder 1 Frame": "Q",
-            "Avançar 1s": "Right",
-            "Retroceder 1s": "Left",
-            "Aumentar Volume": "Up",
-            "Diminuir Volume": "Down",
-            "Tela Cheia": "F",
-            "Aumentar Velocidade": "+",
-            "Diminuir Velocidade": "-",
-        }
+        # Configurações de teclas - usando configuração padrão
+        self.keybinds = DEFAULT_KEYBINDS.copy()
 
-        # Configurações
-        self.fps = 0
-        self.current_frame = 0
-        self.max_frames = 0
-        self.speed_factor = 1
-        self.playlist = []
-        self.current_video_index = -1
-        self.pauseAt_15 = False
-        self.pauseAt_30 = False
-        self.pauseAt_45 = False
-
-        # Zoom Configs
-        self.stored_zoom_value = 0
-        self.stored_zoom_scale_x = 80
-        self.stored_zoom_scale_y = 45
-        self.stored_zoom_area_pos = QPoint(0, 0)
+        # Configurações do player
+        self._initialize_player_state()
+        
+        # Configurações de zoom
+        self._initialize_zoom_state()
 
         # Criando UI
         self.create_ui()
@@ -58,8 +51,28 @@ class ModernVideoPlayer(QMainWindow):
 
         # Timer para atualização do slider
         self.timer = QTimer()
-        self.timer.setInterval(500)
+        self.timer.setInterval(UI_UPDATE_INTERVAL)
         self.timer.timeout.connect(self.update_ui)
+
+    def _initialize_player_state(self):
+        """Initialize player state variables."""
+        self.fps = 0
+        self.current_frame = 0
+        self.max_frames = 0
+        self.speed_factor = 1
+        self.playlist = []
+        self.current_video_index = -1
+        
+        # Initialize auto-pause flags dynamically based on configuration
+        for position in AUTO_PAUSE_POSITIONS:
+            setattr(self, f"pauseAt_{int(position * 100)}", False)
+
+    def _initialize_zoom_state(self):
+        """Initialize zoom-related state variables."""
+        self.stored_zoom_value = 0
+        self.stored_zoom_scale_x = 80
+        self.stored_zoom_scale_y = 45
+        self.stored_zoom_area_pos = QPoint(0, 0)
 
         # # Controle de interface no fullscreen
         # self.last_mouse_pos = QCursor.pos()
@@ -114,7 +127,7 @@ class ModernVideoPlayer(QMainWindow):
         apply_styles(self)
 
     def open_zoom_dialog(self):
-        """Abre o modal para configurar o zoom"""
+        """Open the zoom configuration modal."""
         if self.current_video_index != -1:
             zoom_modal = ZoomModal(
                 parent=self,
@@ -130,36 +143,39 @@ class ModernVideoPlayer(QMainWindow):
                 self.stored_zoom_scale_y = zoom_modal.zoom_scale_y
                 self.stored_zoom_area_pos = zoom_modal.zoom_area.pos()
         else:
-            self.notification("Nenhum vídeo carregado!", "red")
+            self.notification("Nenhum vídeo carregado!", NOTIFICATION_COLORS["error"])
 
     def open_playlist_dialog(self):
-        """Abre um modal para exibir os vídeos da playlist."""
+        """Open modal to display playlist videos."""
         if not self.playlist:
-            self.notification("Nenhum vídeo na playlist!", "red")
+            self.notification("Nenhum vídeo na playlist!", NOTIFICATION_COLORS["warning"])
             return
 
         dialog = PlaylistModal(self, self.playlist, self.current_video_index)
-        if dialog.exec():  # Se o usuário selecionar um vídeo e confirmar
+        if dialog.exec():
             if dialog.selected_video:
-                self.current_video_index = (
-                    dialog.selected_index
-                )  # Atualiza o índice atual
-                self.open_file(dialog.selected_video)  # Reproduz o vídeo escolhido
+                self.current_video_index = dialog.selected_index
+                self.open_file(dialog.selected_video)
 
     def open_file_dialog(self):
-        video_paths, _ = QFileDialog.getOpenFileNames(
-            self,
-            "Selecionar Vídeos",
-            "P:/",
-            "Vídeos (*.dav *.mp4 *.avi *.mkv)",
-        )
-        if video_paths:
-            self.playlist.extend(video_paths)  # Adiciona à playlist
-            if (
-                self.current_video_index == -1
-            ):  # Se nenhum vídeo estiver carregado, inicie o primeiro
-                self.current_video_index = 0
-                self.open_file(self.playlist[self.current_video_index])
+        """Open file dialog to select video files."""
+        try:
+            video_paths, _ = QFileDialog.getOpenFileNames(
+                self,
+                "Selecionar Vídeos",
+                DEFAULT_VIDEO_PATH,
+                VIDEO_FILTER,
+            )
+            
+            if video_paths:
+                self.playlist.extend(video_paths)
+                if self.current_video_index == -1:
+                    # If no video is currently loaded, start with the first one
+                    self.current_video_index = 0
+                    self.open_file(self.playlist[self.current_video_index])
+                    
+        except Exception as e:
+            self.notification(f"Erro ao abrir arquivo: {e}", NOTIFICATION_COLORS["error"])
 
     def open_settings_dialog(self):
         """Abre o modal de configurações de binds"""
@@ -172,20 +188,20 @@ class ModernVideoPlayer(QMainWindow):
             )  # Atualiza os binds escolhidos pelo usuário
 
     def play_next(self):
-        """Reproduz o próximo vídeo na playlist."""
+        """Play the next video in the playlist."""
         if self.current_video_index < len(self.playlist) - 1:
             self.current_video_index += 1
             self.open_file(self.playlist[self.current_video_index])
         else:
-            self.notification("Fim da playlist!", "red")
+            self.notification("Fim da playlist!", NOTIFICATION_COLORS["warning"])
 
     def play_previous(self):
-        """Reproduz o vídeo anterior na playlist."""
+        """Play the previous video in the playlist."""
         if self.current_video_index > 0:
             self.current_video_index -= 1
             self.open_file(self.playlist[self.current_video_index])
         else:
-            self.notification("Início da playlist!", "red")
+            self.notification("Início da playlist!", NOTIFICATION_COLORS["warning"])
 
     def open_file(self, filename):
         media = self.instance.media_new(filename)
@@ -200,24 +216,27 @@ class ModernVideoPlayer(QMainWindow):
         self.timer.start()
 
     def play(self):
+        """Start video playback."""
         if self.mediaplayer.is_playing():
             return
         self.mediaplayer.play()
-        self.play_button.setIcon(QIcon(os.path.join(icon_path, "play.png")))
+        self.play_button.setIcon(QIcon(os.path.join(ICON_PATH, "play.png")))
 
     def pause(self):
+        """Pause video playback."""
         if not self.mediaplayer.is_playing():
             return
         self.mediaplayer.pause()
-        self.play_button.setIcon(QIcon(os.path.join(icon_path, "pause.png")))
+        self.play_button.setIcon(QIcon(os.path.join(ICON_PATH, "pause.png")))
 
     def play_pause(self):
+        """Toggle between play and pause states."""
         if self.mediaplayer.is_playing():
             self.mediaplayer.pause()
-            self.play_button.setIcon(QIcon(os.path.join(icon_path, "play.png")))
+            self.play_button.setIcon(QIcon(os.path.join(ICON_PATH, "play.png")))
         else:
             self.mediaplayer.play()
-            self.play_button.setIcon(QIcon(os.path.join(icon_path, "pause.png")))
+            self.play_button.setIcon(QIcon(os.path.join(ICON_PATH, "pause.png")))
 
     def set_position(self, position):
         self.mediaplayer.set_time(position)
@@ -270,28 +289,50 @@ class ModernVideoPlayer(QMainWindow):
         self.mediaplayer.set_time(new_frame)
 
     def change_volume(self, amount):
-        """Ajusta o volume do player"""
-        current_volume = self.mediaplayer.audio_get_volume()
-        new_volume = max(0, min(100, current_volume + amount))
-        self.mediaplayer.audio_set_volume(new_volume)
+        """Adjust player volume.
+        
+        Args:
+            amount (int): Amount to increase/decrease volume by
+        """
+        try:
+            current_volume = self.mediaplayer.audio_get_volume()
+            new_volume = max(0, min(100, current_volume + amount))
+            self.mediaplayer.audio_set_volume(new_volume)
+            
+            # Show volume notification
+            volume_text = f"Volume: {new_volume}%"
+            if new_volume == 0:
+                volume_text += " (Mudo)"
+            elif new_volume == 100:
+                volume_text += " (Máximo)"
+                
+            self.notification(volume_text, NOTIFICATION_COLORS["info"])
+        except Exception as e:
+            self.notification(f"Erro ao ajustar volume: {e}", NOTIFICATION_COLORS["error"])
 
     def change_speed(self, factor):
-        """Ajusta a velocidade do vídeo"""
-        new_speed = max(
-            0.5, min(32, self.speed_factor * factor)
-        )  # Mantém entre 0.5x e 4x
+        """Adjust video speed by multiplication factor.
+        
+        Args:
+            factor (float): Multiplication factor for speed change
+        """
+        from config import SPEED_MIN, SPEED_MAX
+        new_speed = max(SPEED_MIN, min(SPEED_MAX, self.speed_factor * factor))
         self.mediaplayer.set_rate(new_speed)
         self.speed_factor = new_speed
-        self.notification(f"Speed: {new_speed:.2f}x", "rgba(189, 189, 189, 0.5)")
+        self.notification(f"Velocidade: {new_speed:.2f}x", NOTIFICATION_COLORS["info"])
 
-    def increment_speed(self, factor):
-        """Ajusta a velocidade do vídeo"""
-        new_speed = max(
-            0.5, min(32, self.speed_factor + factor)
-        )  # Mantém entre 0.5x e 4x
+    def increment_speed(self, increment):
+        """Adjust video speed by adding increment.
+        
+        Args:
+            increment (float): Amount to add/subtract from current speed
+        """
+        from config import SPEED_MIN, SPEED_MAX, SPEED_INCREMENT
+        new_speed = max(SPEED_MIN, min(SPEED_MAX, self.speed_factor + increment))
         self.mediaplayer.set_rate(new_speed)
         self.speed_factor = new_speed
-        self.notification(f"Speed: {new_speed:.2f}x", "rgba(189, 189, 189, 0.5)")
+        self.notification(f"Velocidade: {new_speed:.2f}x", NOTIFICATION_COLORS["info"])
 
     def toggle_fullscreen(self, exit_fullscreen=False):
         """Ativa/Desativa modo de tela cheia"""
@@ -306,85 +347,98 @@ class ModernVideoPlayer(QMainWindow):
         fm = QFontMetrics(widget.font())
         return fm.horizontalAdvance(text)
 
-    def notification(self, message, color="orange", duration=5000):
-        if hasattr(self, "snackbar"):
-            self.snackbar.setText(message)
-            self.snackbar.setStyleSheet(
-                f"""
-                QLabel {{
-                    background-color: {color};
-                    color: white;
-                    font-size: 15px;
-                    font-weight: bold;
-                    padding: 12px 20px;
-                    border-radius: 50px;
-                }}
-            """
-            )
+    def notification(self, message, color=None, duration=None):
+        """Display a notification message to the user.
+        
+        Args:
+            message (str): Message to display
+            color (str, optional): Color for the notification. Defaults to info color.
+            duration (int, optional): Duration in milliseconds. Defaults to configured value.
+        """
+        if color is None:
+            color = NOTIFICATION_COLORS["info"]
+        if duration is None:
+            duration = NOTIFICATION_DURATION
+            
+        try:
+            if hasattr(self, "snackbar"):
+                self.snackbar.setText(message)
+                self.snackbar.setStyleSheet(
+                    f"""
+                    QLabel {{
+                        background-color: {color};
+                        color: white;
+                        font-size: 15px;
+                        font-weight: bold;
+                        padding: 12px 20px;
+                        border-radius: 50px;
+                    }}
+                """
+                )
 
-            # Calcular a largura do texto
-            text_width = self.calculate_text_width(self.snackbar, message)
-            # Acrescentar uma folga para padding (por ex.: 40 pixels)
-            text_width += 40
+                # Calculate text width
+                text_width = self.calculate_text_width(self.snackbar, message) + 40
+                min_width = 150
+                max_width = int(self.width() * 0.8)
+                snackbar_width = max(min_width, min(text_width, max_width))
 
-            min_width = 150
-            max_width = self.width() * 0.8
-            snackbar_width = max(min_width, min(text_width, max_width))
+                self.snackbar.setFixedWidth(snackbar_width)
+                self.snackbar.adjustSize()
 
-            # Força essa largura
-            self.snackbar.setFixedWidth(snackbar_width)
-            # Se quiser que a altura seja recalculada com base na nova largura, chame:
-            self.snackbar.adjustSize()
+                # Position the notification
+                final_width = self.snackbar.width()
+                final_height = self.snackbar.height()
+                x = (self.width() - final_width) // 2
+                y = 20
+                self.snackbar.setGeometry(x, y, final_width, final_height)
+                self.snackbar.show()
+            else:
+                # Create notification for the first time
+                self._create_new_notification(message, color)
 
-            # Centraliza no topo (pegando a nova altura)
-            final_width = self.snackbar.width()
-            final_height = self.snackbar.height()
-            x = (self.width() - final_width) // 2
-            y = 20
-            self.snackbar.setGeometry(x, y, final_width, final_height)
+            # Set up timer to hide notification
+            if not hasattr(self, "snackbar_timer"):
+                self.snackbar_timer = QTimer()
+            self.snackbar_timer.stop()
+            self.snackbar_timer.setSingleShot(True)
+            self.snackbar_timer.timeout.connect(self.hide_notification)
+            self.snackbar_timer.start(duration)
+            
+        except Exception as e:
+            print(f"Error displaying notification: {e}")
 
-            self.snackbar.show()
-        else:
-            # Cria a snackbar pela primeira vez
-            self.snackbar = QLabel(message, self)
-            self.snackbar.setAlignment(Qt.AlignCenter)
-            self.snackbar.setStyleSheet(
-                f"""
-                QLabel {{
-                    background-color: {color};
-                    color: white;
-                    font-size: 15px;
-                    font-weight: bold;
-                    padding: 12px 20px;
-                    border-radius: 50px;
-                }}
-            """
-            )
+    def _create_new_notification(self, message, color):
+        """Create a new notification widget."""
+        self.snackbar = QLabel(message, self)
+        self.snackbar.setAlignment(Qt.AlignCenter)
+        self.snackbar.setStyleSheet(
+            f"""
+            QLabel {{
+                background-color: {color};
+                color: white;
+                font-size: 15px;
+                font-weight: bold;
+                padding: 12px 20px;
+                border-radius: 50px;
+            }}
+        """
+        )
 
-            # Calcular a largura do texto
-            text_width = self.calculate_text_width(self.snackbar, message) + 40
+        text_width = self.calculate_text_width(self.snackbar, message) + 40
+        min_width = 150
+        max_width = int(self.width() * 0.8)
+        snackbar_width = max(min_width, min(text_width, max_width))
 
-            min_width = 150
-            max_width = self.width() * 0.8
-            snackbar_width = max(min_width, min(text_width, max_width))
+        self.snackbar.setFixedWidth(snackbar_width)
+        self.snackbar.setWordWrap(True)
+        self.snackbar.adjustSize()
 
-            self.snackbar.setFixedWidth(snackbar_width)
-            self.snackbar.setWordWrap(True)
-            self.snackbar.adjustSize()
-
-            final_width = self.snackbar.width()
-            final_height = self.snackbar.height()
-            x = (self.width() - final_width) // 2
-            y = 20
-            self.snackbar.setGeometry(x, y, final_width, final_height)
-            self.snackbar.show()
-
-        if not hasattr(self, "snackbar_timer"):
-            self.snackbar_timer = QTimer()
-        self.snackbar_timer.stop()
-        self.snackbar_timer.setSingleShot(True)
-        self.snackbar_timer.timeout.connect(self.hide_notification)
-        self.snackbar_timer.start(duration)
+        final_width = self.snackbar.width()
+        final_height = self.snackbar.height()
+        x = (self.width() - final_width) // 2
+        y = 20
+        self.snackbar.setGeometry(x, y, final_width, final_height)
+        self.snackbar.show()
 
     def hide_notification(self):
         """Esconde a notificação e libera memória"""
@@ -407,6 +461,7 @@ class ModernVideoPlayer(QMainWindow):
             )
 
     def open_speed_menu(self):
+        """Open speed selection menu."""
         menu = QMenu(self)
         menu.setStyleSheet(
             """
@@ -425,12 +480,10 @@ class ModernVideoPlayer(QMainWindow):
             QMenu::item:selected {
                 background-color: #383a3e;
             }
-        """
+            """
         )
 
-        speeds = ["1x", "2x", "4x", "6x", "8x", "10x", "12x", "16x", "32x"]
-
-        for speed_text in speeds:
+        for speed_text in SPEED_OPTIONS:
             action = QAction(speed_text, self)
             action.triggered.connect(
                 lambda checked, s=speed_text: self.set_speed(float(s.replace("x", "")))
@@ -443,106 +496,69 @@ class ModernVideoPlayer(QMainWindow):
         menu.exec(button_pos)
 
     def update_ui(self):
-        if self.mediaplayer.is_playing():
+        """Update UI elements with current playback information."""
+        if not self.mediaplayer.is_playing():
+            return
+            
+        try:
             self.current_frame = self.mediaplayer.get_time()
             self.max_frames = self.mediaplayer.get_length()
+            
+            if self.max_frames <= 0:
+                return
+                
+            # Update slider
             self.position_slider.setRange(0, int(self.max_frames))
             self.position_slider.setValue(int(self.current_frame))
-            # Converter milissegundos para segundos
+            
+            # Update timer label using utility function
+            self.timer_label.setText(format_time_range(self.current_frame, self.max_frames))
+            
+            # Handle auto-pause for long videos
+            self._handle_auto_pause()
+            
+        except Exception as e:
+            print(f"Error updating UI: {e}")
+
+    def _handle_auto_pause(self):
+        """Handle automatic pausing for long videos at specific intervals."""
+        max_minutes = int(self.max_frames / 1000 / 60)
+        
+        if max_minutes <= AUTO_PAUSE_MIN_DURATION:
+            # For short videos, auto-advance to next video
             current_seconds = int(self.current_frame / 1000)
             max_seconds = int(self.max_frames / 1000)
-
-            # Obter minutos e segundos usando divmod
-            current_minutes, current_secs = divmod(current_seconds, 60)
-            max_minutes, max_secs = divmod(max_seconds, 60)
-
-            # Atualizar o label com formatação de dois dígitos para minutos e segundos
-            self.timer_label.setText(
-                f"{current_minutes:02}:{current_secs:02} / {max_minutes:02}:{max_secs:02}"
-            )
-
-            if max_minutes > 50:
-                if (
-                    self.current_frame
-                    >= (self.max_frames * (1 / 4) - (self.speed_factor * 500))
-                    and self.current_frame
-                    <= (self.max_frames * (1 / 4) + (self.speed_factor * 500))
-                    and not self.pauseAt_15
-                ):
-                    self.pauseAt_15 = True
-                    self.pauseAt_30 = False
-                    self.pauseAt_45 = False
-
-                    self.pause()
-                    self.notification(
-                        "Pausado automaticamente, Lembre-se de salvar o progresso.",
-                    )
-                elif (
-                    self.current_frame
-                    >= (self.max_frames * (1 / 2) - (self.speed_factor * 500))
-                    and self.current_frame
-                    <= (self.max_frames * (1 / 2) + (self.speed_factor * 500))
-                    and not self.pauseAt_30
-                ):
-                    self.pauseAt_15 = False
-                    self.pauseAt_30 = True
-                    self.pauseAt_45 = False
-
-                    self.pause()
-                    self.notification(
-                        "Pausado automaticamente, Lembre-se de salvar o progresso."
-                    )
-                elif (
-                    self.current_frame
-                    >= (self.max_frames * (3 / 4) - (self.speed_factor * 500))
-                    and self.current_frame
-                    <= (self.max_frames * (3 / 4) + (self.speed_factor * 500))
-                    and not self.pauseAt_45
-                ):
-                    self.pauseAt_15 = False
-                    self.pauseAt_30 = False
-                    self.pauseAt_45 = True
-
-                    self.pause()
-                    self.notification(
-                        "Pausado automaticamente, Lembre-se de salvar o progresso."
-                    )
-                elif (
-                    self.current_video_index != -1
-                    and self.current_frame >= self.max_frames - 500
-                ):
-                    self.pauseAt_15 = False
-                    self.pauseAt_30 = False
-                    self.pauseAt_45 = False
-                else:
-                    if (
-                        self.current_frame
-                        <= (self.max_frames * (1 / 4) - (self.speed_factor * 500))
-                        and self.pauseAt_15
-                    ):
-                        self.pauseAt_15 = False
-                    elif (
-                        self.current_frame
-                        >= (self.max_frames * (1 / 4) - (self.speed_factor * 500))
-                        and self.current_frame
-                        <= (self.max_frames * (1 / 2) + (self.speed_factor * 500))
-                        and self.pauseAt_30
-                    ):
-                        self.pauseAt_30 = False
-                    elif (
-                        self.current_frame
-                        >= (self.max_frames * (1 / 2) - (self.speed_factor * 500))
-                        and self.current_frame
-                        <= (self.max_frames * (3 / 4) + (self.speed_factor * 500))
-                        and self.pauseAt_45
-                    ):
-                        self.pauseAt_45 = False
-            else:
-                if (
-                    self.current_video_index != -1
-                    and current_seconds + self.speed_factor >= max_seconds
-                ):
-                    self.play_next()
+            
+            if (self.current_video_index != -1 and 
+                current_seconds + self.speed_factor >= max_seconds):
+                self.play_next()
+            return
+            
+        # For long videos, pause at specific intervals
+        tolerance = self.speed_factor * 500  # milliseconds
+        
+        for i, position in enumerate(AUTO_PAUSE_POSITIONS):
+            pause_time = self.max_frames * position
+            attr_name = f"pauseAt_{int(position * 100)}"
+            
+            if (self.current_frame >= pause_time - tolerance and 
+                self.current_frame <= pause_time + tolerance and
+                not getattr(self, attr_name, False)):
+                
+                # Reset other pause flags
+                for j, pos in enumerate(AUTO_PAUSE_POSITIONS):
+                    other_attr = f"pauseAt_{int(pos * 100)}"
+                    setattr(self, other_attr, j == i)
+                
+                self.pause()
+                self.notification(
+                    "Pausado automaticamente, Lembre-se de salvar o progresso.",
+                    NOTIFICATION_COLORS["warning"]
+                )
+                break
+            elif (self.current_frame <= pause_time - tolerance and 
+                  getattr(self, attr_name, False)):
+                setattr(self, attr_name, False)
 
     def resizeEvent(self, event):
         super().resizeEvent(event)
