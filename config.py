@@ -13,6 +13,7 @@ DEFAULT_SIZE = (1280, 720)
 # File Paths
 ICON_PATH = os.path.join(os.path.dirname(__file__), "icons")
 SUPPORTED_VIDEO_EXTENSIONS = (".mp4", ".avi", ".mkv", ".dav")
+SUPPORTED_IMAGE_EXTENSIONS = (".png", ".jpg", ".jpeg", ".bmp", ".gif", ".tiff", ".webp")
 
 # UI Configuration
 MINIMUM_VIDEO_HEIGHT = 500

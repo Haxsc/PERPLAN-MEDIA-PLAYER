@@ -11,7 +11,8 @@ from config import (
     HOST,
     MEDIA_PORT,
     CONTADOR_PORT,
-    SUPPORTED_VIDEO_EXTENSIONS
+    SUPPORTED_VIDEO_EXTENSIONS,
+    SUPPORTED_IMAGE_EXTENSIONS
 )
 
 
@@ -79,9 +80,8 @@ def run_asyncio_loop(loop):
 def parse_arguments():
     parser = argparse.ArgumentParser(description="Aplicativo ModernVideoPlayer")
 
-    parser.add_argument("--croqui", type=str, help="Diretório do croqui")
-    parser.add_argument("--video", type=str, help="Diretório do vídeo")
-    # parser.add_argument('--opencoqui', action='store_true', help='Abrir automaticamente o croqui')
+    parser.add_argument("--croqui", type=str, help="Caminho para o arquivo de imagem do croqui")
+    parser.add_argument("--video", type=str, help="Caminho para o arquivo de vídeo")
 
     args = parser.parse_args()
 
@@ -89,19 +89,26 @@ def parse_arguments():
     if args.croqui:
         croqui_path = os.path.normpath(args.croqui)
         if not os.path.exists(croqui_path):
-            print(f"[ERRO] Diretório do croqui não existe: {croqui_path}")
+            print(f"[ERRO] Arquivo do croqui não existe: {croqui_path}")
+            return None
         else:
+            # Verifica se é um arquivo de imagem
+            if not croqui_path.lower().endswith(SUPPORTED_IMAGE_EXTENSIONS):
+                print(f"[ERRO] Arquivo do croqui deve ser uma imagem: {croqui_path}")
+                return None
             print(f"[OK] Croqui recebido: {croqui_path}")
 
     if args.video:
         video_path = os.path.normpath(args.video)
         if not os.path.exists(video_path):
-            print(f"[ERRO] Diretório do vídeo não existe: {video_path}")
+            print(f"[ERRO] Arquivo do vídeo não existe: {video_path}")
+            return None
         else:
+            # Verifica se é um arquivo de vídeo suportado
+            if not video_path.lower().endswith(SUPPORTED_VIDEO_EXTENSIONS):
+                print(f"[ERRO] Formato de vídeo não suportado: {video_path}")
+                return None
             print(f"[OK] Vídeo recebido: {video_path}")
-
-    # if args.opencoqui:
-    #     print("[INFO] Flag --opencoqui ativada")
 
     return args
 
@@ -110,24 +117,14 @@ if __name__ == "__main__":
     app = QApplication(sys.argv)  # Cria o QApplication antes de qualquer QWidget
     app.setWindowIcon(QIcon(os.path.join(ICON_PATH, "road.png")))
 
-    # armazenamento de ARGS *FUTURO DINAMICO*
+    # Parse dos argumentos da linha de comando
+    args = parse_arguments()
+    
+    # Se houve erro no parsing dos argumentos, encerra o programa
+    if args is None:
+        sys.exit(1)
 
-    # argv_1 = sys.argv[1]
-    # argv_2 = sys.argv[2]
-    # argv_3 = sys.argv[3]
-
-    #################################
-    #
-    # EXEMPLO:
-    # args = parse_arguments()
-    #
-    # if args.opencoqui:
-    #   print("Abrindo croqui automaticamente...")
-    #
-    ################################
-
-    # Inicia o player normalmente
-
+    # Inicia o player
     player = ModernVideoPlayer()
     player.show()
 
@@ -141,8 +138,24 @@ if __name__ == "__main__":
     # Inicia o servidor automaticamente
     start_server(loop)
 
-    # Check if app was opened with a video file
-    if len(sys.argv) > 1:
+    # Processa argumentos recebidos
+    croqui_accepted = True  # Por padrão, aceita continuar
+    
+    # Se foi passado um croqui, abre o modal
+    if args.croqui:
+        croqui_accepted = player.open_croqui_modal(args.croqui)
+        if not croqui_accepted:
+            print("[INFO] Aplicativo encerrado - croqui cancelado pelo usuário")
+            sys.exit(0)
+
+    # Se foi passado um vídeo e o croqui foi aceito (ou não havia croqui), carrega o vídeo
+    if args.video and croqui_accepted:
+        player.playlist.append(args.video)
+        player.current_video_index = 0
+        player.open_file(args.video)
+    
+    # Check if app was opened with a video file (compatibilidade com versão anterior)
+    elif len(sys.argv) > 1 and not args.croqui and not args.video:
         video_path = sys.argv[1]
         if os.path.exists(video_path) and video_path.lower().endswith(SUPPORTED_VIDEO_EXTENSIONS):
             player.playlist.append(video_path)

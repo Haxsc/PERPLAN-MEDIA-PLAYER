@@ -126,6 +126,21 @@ class ModernVideoPlayer(QMainWindow):
         """Aplica os estilos definidos no `styles.py`"""
         apply_styles(self)
 
+    def open_croqui_modal(self, croqui_path):
+        """Open the croqui modal with the specified image."""
+        try:
+            from croqui_modal import CroquiModal
+            croqui_modal = CroquiModal(self, croqui_path)
+            if croqui_modal.exec():
+                print("[CROQUI] Modal aceito - processo iniciado")
+                return True
+            else:
+                print("[CROQUI] Modal cancelado")
+                return False
+        except Exception as e:
+            self.notification(f"Erro ao abrir croqui: {e}", NOTIFICATION_COLORS["error"])
+            return False
+
     def open_zoom_dialog(self):
         """Open the zoom configuration modal."""
         if self.current_video_index != -1:
