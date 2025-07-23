@@ -150,10 +150,11 @@ if __name__ == "__main__":
 
     # Se foi passado um vídeo e o croqui foi aceito (ou não havia croqui), carrega o vídeo
     if args.video and croqui_accepted:
-        player.playlist.append(args.video)
-        player.current_video_index = 0
-        player.open_file(args.video)
-    
+        if os.path.exists(args.video) and args.video.lower().endswith(SUPPORTED_VIDEO_EXTENSIONS):
+            player.playlist.append(args.video)
+            player.current_video_index = 0
+            player.open_file(args.video)
+        
     # Check if app was opened with a video file (compatibilidade com versão anterior)
     elif len(sys.argv) > 1 and not args.croqui and not args.video:
         video_path = sys.argv[1]
