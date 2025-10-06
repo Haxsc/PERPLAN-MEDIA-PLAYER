@@ -5,6 +5,11 @@ Contains helper functions used across the application.
 
 import os
 from typing import Tuple
+from datetime import datetime
+import json
+import requests
+import zipfile
+import tempfile
 
 
 def format_time(milliseconds: int) -> str:
@@ -165,3 +170,103 @@ def get_file_size_string(file_path: str) -> str:
             
     except OSError:
         return "Tamanho desconhecido"
+
+def get_app_data_folder():
+    """Retorna o caminho da pasta de dados do app"""
+    if os.name == 'nt':  # Windows
+        app_data = os.environ.get('APPDATA', os.path.expanduser('~'))
+    else:  # Linux/Mac
+        app_data = os.path.expanduser('~/.local/share')
+    
+    return os.path.join(app_data, 'perplan-media')
+
+def create_version_info(version):
+    """Cria arquivo de informações detalhadas da versão"""
+    try:
+        app_folder = get_app_data_folder()
+        info_file = os.path.join(app_folder, 'version_info.json')
+        
+        version_info = {
+            "version": str(version),
+        }
+        
+        with open(info_file, 'w', encoding='utf-8') as f:
+            json.dump(version_info, f, indent=2, ensure_ascii=False)
+        
+        print(f"[VERSION] Informações salvas: {info_file}")
+        return True
+        
+    except Exception as e:
+        print(f"[VERSION] Erro ao salvar informações: {e}")
+        return False
+
+def get_version_info():
+    """Lê informações detalhadas da versão"""
+    try:
+        app_folder = get_app_data_folder()
+        info_file = os.path.join(app_folder, 'version_info.json')
+        
+        if os.path.exists(info_file):
+            with open(info_file, 'r', encoding='utf-8') as f:
+                return json.load(f)
+        return None
+        
+    except Exception as e:
+        print(f"[VERSION] Erro ao ler informações: {e}")
+        return None
+
+def get_updater() -> str:
+    try:
+        app_folder = get_app_data_folder()
+        info_file = os.path.join(app_folder, 'updater.exe')
+        
+        if os.path.exists(info_file):
+            return info_file
+        return None
+        
+    except Exception as e:
+        print(f"[VERSION] Erro ao ler informações: {e}")
+        return None
+    
+def download_and_extract(url, extract_to=None):
+    """Download simples e extração em local específico"""
+    try:
+        print(f"[DOWNLOAD] Baixando: {url}")
+        
+        # Define pasta de extração
+        if extract_to is None:
+            extract_to = os.getcwd()  # Pasta atual do app
+        
+        # Cria pasta se não existir
+        os.makedirs(extract_to, exist_ok=True)
+        
+        # Baixa o arquivo
+        response = requests.get(url, timeout=30)
+        if response.status_code == 200:
+            # Salva temporariamente
+            temp_file = os.path.join(tempfile.gettempdir(), "update_temp.zip")
+            
+            with open(temp_file, 'wb') as f:
+                f.write(response.content)
+            
+            print(f"[DOWNLOAD] ✅ Arquivo baixado")
+            
+            # Extrai para local específico
+            print(f"[EXTRACT] Extraindo para: {extract_to}")
+            
+            with zipfile.ZipFile(temp_file, 'r') as zip_ref:
+                zip_ref.extractall(extract_to)
+            
+            # Remove arquivo temporário
+            os.remove(temp_file)
+            
+            print(f"[EXTRACT] ✅ Extração concluída em: {extract_to}")
+            return True
+            
+        else:
+            print(f"[DOWNLOAD] ❌ Erro: {response.status_code}")
+            return False
+            
+    except Exception as e:
+        print(f"[DOWNLOAD] ❌ Erro: {e}")
+        return False

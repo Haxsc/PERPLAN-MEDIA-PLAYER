@@ -12,7 +12,7 @@ DEFAULT_SIZE = (1280, 720)
 
 # File Paths
 ICON_PATH = os.path.join(os.path.dirname(__file__), "icons")
-SUPPORTED_VIDEO_EXTENSIONS = (".mp4", ".avi", ".mkv", ".dav")
+SUPPORTED_VIDEO_EXTENSIONS = (".mp4", ".avi", ".mkv", ".dav", ".dav_")
 SUPPORTED_IMAGE_EXTENSIONS = (".png", ".jpg", ".jpeg", ".bmp", ".gif", ".tiff", ".webp")
 
 # UI Configuration
@@ -68,7 +68,7 @@ SPEED_OPTIONS = ["1x", "2x", "4x", "6x", "8x", "10x", "12x", "16x", "32x"]
 
 # File Dialog Configuration
 DEFAULT_VIDEO_PATH = "P:/"
-VIDEO_FILTER = "Vídeos (*.dav *.mp4 *.avi *.mkv)"
+VIDEO_FILTER = "Vídeos (*.dav *.mp4 *.avi *.mkv *.dav_);;Todos os Arquivos (*)"
 
 # Notification Colors
 NOTIFICATION_COLORS = {

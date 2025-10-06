@@ -54,13 +54,13 @@ def create_header_buttons(player) -> Tuple[QPushButton, QPushButton, QPushButton
     zoom_button.setFocusPolicy(Qt.NoFocus)
 
     # Paint button
-    paint_button = QPushButton(" Pintar")
-    paint_button.setIcon(QIcon(os.path.join(ICON_PATH, "brush.png")))
+    #paint_button = QPushButton(" Pintar")
+    #paint_button.setIcon(QIcon(os.path.join(ICON_PATH, "brush.png")))
     # TODO: Implement paint dialog functionality
     # paint_button.clicked.connect(player.open_paint_dialog)
-    paint_button.setFocusPolicy(Qt.NoFocus)
+    #paint_button.setFocusPolicy(Qt.NoFocus)
     
-    return open_button, playlist_button, settings_button, zoom_button, paint_button
+    return open_button, playlist_button, settings_button, zoom_button#, paint_button
 
 
 def create_control_buttons(player) -> Tuple[QPushButton, QPushButton, QPushButton, QPushButton]:

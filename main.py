@@ -1,8 +1,12 @@
 import sys
 import os
 import argparse
+import requests
+import subprocess
+import time
 from PySide6.QtWidgets import QApplication
 from PySide6.QtGui import QIcon
+from utils import create_version_info, download_and_extract, get_app_data_folder, get_updater, get_version_info
 from video_player import ModernVideoPlayer
 import asyncio
 from threading import Thread
@@ -15,6 +19,145 @@ from config import (
     SUPPORTED_IMAGE_EXTENSIONS
 )
 
+def get_version_api() -> str:
+    URL = "http://localhost:1234/api/version"
+    try:
+        response = requests.get(URL)
+        if response.status_code == 200:
+            data = response.json()
+            version = data.get("version")
+            if version:
+                return version
+            else:
+                print("[APP] Versão não encontrada na resposta da API.")
+        else:
+            print(f"[APP] Erro ao obter informações da versão: {response.status_code}")
+    except Exception as e:
+        print(f"[APP] Erro: {e}")
+    return None
+
+def updater_app():
+    """Sistema de atualização integrado com API"""
+    
+    try:
+        # Obtém versões
+        local_version_info = get_version_info()
+        remote_version = get_version_api()
+        
+        # Extrai versão do dicionário ou usa None
+        local_version = local_version_info.get("version") if local_version_info else None
+        
+        # Primeira execução - salva versão remota
+        if not local_version:
+            if remote_version:
+                create_version_info(remote_version)
+                print(f"[APP] Primeira execução - versão {remote_version} registrada")
+            return
+        
+        # Se não conseguiu conectar na API, continua com versão local
+        if not remote_version:
+            print("[APP] ⚠️ Não foi possível verificar atualizações (API offline)")
+            return
+        
+        print(f"[APP] Versão local: {local_version}")
+        print(f"[APP] Versão remota: {remote_version}")
+        
+        # Compara versões
+        try:
+            if float(remote_version) > float(local_version):
+                print("[APP] 🎉 Nova atualização disponível!")
+                print("[APP] 💾 Baixando atualização...")
+                
+                # URL de download da API
+                download_url = "http://localhost:1234/api/download"
+                
+                # Pasta temporária para download
+                temp_folder = get_app_data_folder()
+                os.makedirs(temp_folder, exist_ok=True)
+                zip_path = os.path.join(temp_folder, "update_temp.zip")
+                
+                # Baixa o arquivo ZIP
+                response = requests.get(download_url, timeout=30)
+                if response.status_code == 200:
+                    # Salva arquivo
+                    with open(zip_path, 'wb') as f:
+                        f.write(response.content)
+                    
+                    print(f"[APP] ✅ Atualização baixada: {zip_path}")
+                    
+                    # Extrai os arquivos na pasta temporária
+                    import zipfile
+                    extract_folder = os.path.join(temp_folder, "update_extracted")
+                    os.makedirs(extract_folder, exist_ok=True)
+                    
+                    print(f"[APP] 📦 Extraindo atualização...")
+                    with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+                        zip_ref.extractall(extract_folder)
+                    print(f"[APP] ✅ Arquivos extraídos em: {extract_folder}")
+                    
+                    # Procura updater.exe nos arquivos extraídos
+                    updater_exe = os.path.join(extract_folder, "updater.exe")
+                    
+                    if os.path.exists(updater_exe):
+                        # Detecta se está rodando como executável ou script
+                        is_frozen = getattr(sys, 'frozen', False)
+                        
+                        if is_frozen:
+                            # Rodando como executável (.exe)
+                            app_exe = sys.executable  # Caminho do .exe atual
+                            app_dir = os.path.dirname(app_exe)
+                            app_name = os.path.basename(app_exe)
+                            process_name = app_name
+                        else:
+                            # Rodando como script Python
+                            app_dir = os.path.dirname(os.path.abspath(__file__))
+                            app_name = "main.py"
+                            process_name = "python.exe"
+                        
+                        print("[APP] 🔄 Iniciando atualizador...")
+                        
+                        # Comando para executar updater.exe
+                        cmd = [
+                            updater_exe,
+                            "--zip", extract_folder,  # Passa a pasta com os arquivos extraídos
+                            "--target", app_dir,
+                            "--process", process_name,
+                            "--version", str(remote_version),
+                            "--app-name", app_name
+                        ]
+                        
+                        print(f"[APP] Executando: {' '.join(cmd)}")
+                        
+                        # Inicia updater e fecha o app
+                        subprocess.Popen(cmd, creationflags=subprocess.CREATE_NO_WINDOW if is_frozen else 0)
+                        print("[APP] ✅ Atualizador iniciado - fechando aplicativo...")
+                        time.sleep(1)
+                        sys.exit(0)
+                    else:
+                        print(f"[APP] ❌ Updater não encontrado no pacote: {updater_exe}")
+                        print(f"[APP] ⚠️ O ZIP de atualização deve conter updater.exe")
+
+                else:
+                    print(f"[APP] ❌ Erro ao baixar: HTTP {response.status_code}")
+                    
+            else:
+                print("[APP] ✅ Você está usando a versão mais recente!")
+                
+        except ValueError:
+            print("[APP] ❌ Erro ao comparar versões (formato inválido)")
+        except Exception as e:
+            print(f"[APP] ❌ Erro durante atualização: {e}")
+            import traceback
+            traceback.print_exc()
+            
+    except Exception as e:
+        print(f"[APP] ❌ Erro no sistema de atualização: {e}")
+        import traceback
+        traceback.print_exc()
+        print("[APP] ⚠️ Continuando execução normal...")
+
+
+
 
 async def handle_client(reader, writer):
     addr = writer.get_extra_info("peername")
@@ -26,13 +169,11 @@ async def handle_client(reader, writer):
         print(f"[SERVER] Recebido: {data.decode()}")
     writer.close()
 
-
 async def server():
     server = await asyncio.start_server(handle_client, HOST, MEDIA_PORT)
     print(f"[SERVER] Escutando em {HOST}:{MEDIA_PORT}")
     async with server:
         await server.serve_forever()
-
 
 async def client():
     try:
@@ -61,21 +202,17 @@ async def client():
 
     await asyncio.gather(send_messages(), receive_messages())
 
-
 def start_server(loop):
     loop.create_task(server())
     print("[APP] Servidor iniciado no asyncio loop.")
-
 
 def start_client(loop):
     asyncio.run_coroutine_threadsafe(client(), loop)
     print("[APP] Cliente iniciado manualmente no asyncio loop.")
 
-
 def run_asyncio_loop(loop):
     asyncio.set_event_loop(loop)
     loop.run_forever()
-
 
 def parse_arguments():
     parser = argparse.ArgumentParser(description="Aplicativo ModernVideoPlayer")
@@ -112,8 +249,10 @@ def parse_arguments():
 
     return args
 
-
 if __name__ == "__main__":
+    # Sistema de auto-update - verifica atualizações antes de iniciar
+    updater_app()
+
     app = QApplication(sys.argv)  # Cria o QApplication antes de qualquer QWidget
     app.setWindowIcon(QIcon(os.path.join(ICON_PATH, "road.png")))
 
@@ -136,7 +275,7 @@ if __name__ == "__main__":
     t.start()
 
     # Inicia o servidor automaticamente
-    start_server(loop)
+    #start_server(loop)
 
     # Processa argumentos recebidos
     croqui_accepted = True  # Por padrão, aceita continuar

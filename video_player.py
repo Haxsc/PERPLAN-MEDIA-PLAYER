@@ -32,8 +32,23 @@ class ModernVideoPlayer(QMainWindow):
         self.setWindowTitle(APP_NAME)
         self.resize(*DEFAULT_SIZE)
 
+        vlc_args = [
+            '--no-video-title-show',  # Remove overlay de título
+            '--no-audio',  # Desabilita áudio temporariamente em alta velocidade
+            '--no-spu',  # Desabilita subtítulos para economizar recursos
+            '--vout', 'directx',  # Usa DirectX no Windows para melhor performance
+            '--avcodec-threads', '4',  # Usa múltiplos threads para decodificação
+            '--file-caching', '1000',  # Cache otimizado
+            '--network-caching', '1000',
+            '--live-caching', '1000',
+            '--clock-jitter', '0',  # Reduz jitter do clock
+            '--clock-synchro', '0',  # Desabilita sincronização do clock
+            '--avcodec-hw', 'any',
+        ]
+    
+
         # Instância do VLC
-        self.instance = vlc.Instance()
+        self.instance = vlc.Instance(vlc_args)
         self.mediaplayer = self.instance.media_player_new()
 
         # Configurações de teclas - usando configuração padrão
@@ -299,9 +314,17 @@ class ModernVideoPlayer(QMainWindow):
         """Go backward one frame"""
         if self.mediaplayer.is_playing():
             self.pause()
-        current_frame = self.mediaplayer.get_time()
-        new_frame = max(0, current_frame - 30)
-        self.mediaplayer.set_time(new_frame)
+        
+        # Calcula milissegundos por frame baseado no FPS real
+        fps = self.mediaplayer.get_fps()
+        if fps is None or fps <= 0:
+            fps = 30  # Fallback para 30 FPS
+        
+        ms_per_frame = 1000 / fps
+        
+        current_time = self.mediaplayer.get_time()
+        new_time = max(0, current_time - ms_per_frame)
+        self.mediaplayer.set_time(int(new_time))
 
     def change_volume(self, amount):
         """Adjust player volume.
