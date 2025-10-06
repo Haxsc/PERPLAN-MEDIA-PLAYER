@@ -1,11 +1,57 @@
-# Ignorar arquivos grandes de build
-*.exe
-*.zip
-*.pkg
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
 *.pyc
+
+# PyInstaller
 build/
 dist/
-__pycache__/
-*.toc
-*.pyd
-*.spec
+*.manifest
+*.spec.bak
+
+# Compilação
+*.exe
+*.dll
+*.dylib
+*.so
+
+# Pacotes de atualização
+*.zip
+*.pkg
+*.tar.gz
+
+# Arquivos temporários
+*.log
+*.tmp
+*.temp
+*.cache
+.vscode/
+.idea/
+
+# Dados locais
+api/updates/*.zip
+temp_update/
+
+# Sistema operacional
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Ambientes virtuais
+venv/
+.venv/
+env/
+ENV/
+
+# Testes
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Backups
+backup_old/
+*.bak
+*.backup
