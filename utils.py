@@ -10,6 +10,7 @@ import json
 import requests
 import zipfile
 import tempfile
+import traceback
 
 
 def format_time(milliseconds: int) -> str:
@@ -184,6 +185,11 @@ def create_version_info(version):
     """Cria arquivo de informações detalhadas da versão"""
     try:
         app_folder = get_app_data_folder()
+        
+        # Cria a pasta se não existir
+        os.makedirs(app_folder, exist_ok=True)
+        print(f"[VERSION] Pasta criada/verificada: {app_folder}")
+        
         info_file = os.path.join(app_folder, 'version_info.json')
         
         version_info = {
@@ -198,12 +204,18 @@ def create_version_info(version):
         
     except Exception as e:
         print(f"[VERSION] Erro ao salvar informações: {e}")
+        import traceback
+        traceback.print_exc()
         return False
 
 def get_version_info():
     """Lê informações detalhadas da versão"""
     try:
         app_folder = get_app_data_folder()
+        
+        # Garante que a pasta existe
+        os.makedirs(app_folder, exist_ok=True)
+        
         info_file = os.path.join(app_folder, 'version_info.json')
         
         if os.path.exists(info_file):

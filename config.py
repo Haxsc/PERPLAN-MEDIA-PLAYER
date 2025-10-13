@@ -7,7 +7,6 @@ import os
 
 # Application Information
 APP_NAME = "PPL Player"
-APP_VERSION = "1.2"
 DEFAULT_SIZE = (1280, 720)
 
 # File Paths
@@ -37,6 +36,9 @@ MOUSE_CHECK_INTERVAL = 500  # milliseconds
 HOST = "localhost"
 MEDIA_PORT = 1337
 CONTADOR_PORT = 3000
+
+#API Configuration
+API_URL = "https://perplan.tech"
 
 # Auto-pause settings (for long videos)
 AUTO_PAUSE_MIN_DURATION = 50  # minutes

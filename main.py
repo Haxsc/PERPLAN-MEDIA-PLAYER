@@ -8,7 +8,6 @@ from PySide6.QtWidgets import QApplication
 from PySide6.QtGui import QIcon
 from utils import create_version_info, download_and_extract, get_app_data_folder, get_updater, get_version_info
 from video_player import ModernVideoPlayer
-from splash_screen import create_splash
 import asyncio
 from threading import Thread
 from config import (
@@ -17,11 +16,12 @@ from config import (
     MEDIA_PORT,
     CONTADOR_PORT,
     SUPPORTED_VIDEO_EXTENSIONS,
-    SUPPORTED_IMAGE_EXTENSIONS
+    SUPPORTED_IMAGE_EXTENSIONS,
+    API_URL
 )
 
 def get_version_api() -> str:
-    URL = "http://localhost:1234/api/version"
+    URL = f"{API_URL}/mediaplayer/api/version"
     try:
         response = requests.get(URL)
         if response.status_code == 200:
@@ -37,13 +37,11 @@ def get_version_api() -> str:
         print(f"[APP] Erro: {e}")
     return None
 
-def updater_app(splash=None):
+def updater_app():
     """Sistema de atualização integrado com API"""
     
     try:
-        # Atualiza status
-        if splash:
-            splash.set_status("Verificando atualizações...")
+        print("[APP] Verificando atualizações...")
         
         # Obtém versões
         local_version_info = get_version_info()
@@ -54,19 +52,21 @@ def updater_app(splash=None):
         
         # Primeira execução - salva versão remota
         if not local_version:
+            print("[APP] Primeira execução - Configurando...")
+            
             if remote_version:
-                if splash:
-                    splash.set_status(f"Registrando versão {remote_version}...")
-                create_version_info(remote_version)
-                print(f"[APP] Primeira execução - versão {remote_version} registrada")
+                success = create_version_info(remote_version)
+                if success:
+                    print(f"[APP] Primeira execução - versão {remote_version} registrada")
+                else:
+                    print(f"[APP] Erro ao registrar versão, mas continuando...")
+            else:
+                print("[APP] Primeira execução sem conexão com API")
             return
         
         # Se não conseguiu conectar na API, continua com versão local
         if not remote_version:
-            if splash:
-                splash.set_status("API offline - usando versão local")
             print("[APP] ⚠️ Não foi possível verificar atualizações (API offline)")
-            time.sleep(0.5)
             return
         
         print(f"[APP] Versão local: {local_version}")
@@ -76,15 +76,10 @@ def updater_app(splash=None):
         try:
             if float(remote_version) > float(local_version):
                 print("[APP] 🎉 Nova atualização disponível!")
-                
-                if splash:
-                    splash.set_status(f"Atualização v{remote_version} disponível!")
-                    splash.set_indeterminate(True)
-                    time.sleep(0.5)
-                    splash.set_status("Baixando atualização...")
+                print("[APP] 💾 Baixando atualização...")
                 
                 # URL de download da API
-                download_url = "http://localhost:1234/api/download"
+                download_url = f"{API_URL}/mediaplayer/api/download"
                 
                 # Pasta temporária para download
                 temp_folder = get_app_data_folder()
@@ -99,9 +94,7 @@ def updater_app(splash=None):
                         f.write(response.content)
                     
                     print(f"[APP] ✅ Atualização baixada: {zip_path}")
-                    
-                    if splash:
-                        splash.set_status("Extraindo arquivos...")
+                    print(f"[APP] 📦 Extraindo arquivos...")
                     
                     # Extrai os arquivos na pasta temporária
                     import zipfile
@@ -132,10 +125,8 @@ def updater_app(splash=None):
                             app_name = "main.py"
                             process_name = "python.exe"
                         
+                        print("[APP] 🔄 Preparando instalação...")
                         print("[APP] 🔄 Iniciando atualizador...")
-                        
-                        if splash:
-                            splash.set_status("Preparando instalação...")
                         
                         # Comando para executar updater.exe
                         cmd = [
@@ -149,52 +140,30 @@ def updater_app(splash=None):
                         
                         print(f"[APP] Executando: {' '.join(cmd)}")
                         
-                        if splash:
-                            splash.set_status("Iniciando atualizador...")
-                            time.sleep(0.5)
-                        
                         # Inicia updater e fecha o app
                         subprocess.Popen(cmd, creationflags=subprocess.CREATE_NO_WINDOW if is_frozen else 0)
                         print("[APP] ✅ Atualizador iniciado - fechando aplicativo...")
-                        time.sleep(0.5)
+                        time.sleep(1)
                         sys.exit(0)
                     else:
                         print(f"[APP] ❌ Updater não encontrado no pacote: {updater_exe}")
                         print(f"[APP] ⚠️ O ZIP de atualização deve conter updater.exe")
-                        if splash:
-                            splash.set_status("Erro: updater não encontrado")
-                            time.sleep(1)
 
                 else:
                     print(f"[APP] ❌ Erro ao baixar: HTTP {response.status_code}")
-                    if splash:
-                        splash.set_status(f"Erro ao baixar (HTTP {response.status_code})")
-                        time.sleep(1)
                     
             else:
                 print("[APP] ✅ Você está usando a versão mais recente!")
-                if splash:
-                    splash.set_status(f"Versão {local_version} atualizada!")
-                    time.sleep(0.3)
                 
         except ValueError:
             print("[APP] ❌ Erro ao comparar versões (formato inválido)")
-            if splash:
-                splash.set_status("Erro ao verificar versões")
-                time.sleep(0.5)
         except Exception as e:
             print(f"[APP] ❌ Erro durante atualização: {e}")
-            if splash:
-                splash.set_status("Erro durante atualização")
-                time.sleep(0.5)
             import traceback
             traceback.print_exc()
             
     except Exception as e:
         print(f"[APP] ❌ Erro no sistema de atualização: {e}")
-        if splash:
-            splash.set_status("Erro ao verificar atualizações")
-            time.sleep(0.5)
         import traceback
         traceback.print_exc()
         print("[APP] ⚠️ Continuando execução normal...")
@@ -297,29 +266,18 @@ if __name__ == "__main__":
     app = QApplication(sys.argv)
     app.setWindowIcon(QIcon(os.path.join(ICON_PATH, "road.png")))
     
-    # Cria e mostra splash screen
-    icon_path = os.path.join(ICON_PATH, "road.png") if os.path.exists(os.path.join(ICON_PATH, "road.png")) else None
-    splash = create_splash(icon_path)
-    splash.set_status("Iniciando PPL Player...")
-    
     # Sistema de auto-update - verifica atualizações antes de iniciar
-    updater_app(splash)
+    updater_app()
 
     # Parse dos argumentos da linha de comando
-    splash.set_status("Processando argumentos...")
     args = parse_arguments()
     
     # Se houve erro no parsing dos argumentos, encerra o programa
     if args is None:
-        splash.close()
         sys.exit(1)
 
     # Inicia o player
-    splash.set_status("Carregando player...")
     player = ModernVideoPlayer()
-    
-    # Fecha splash e mostra player
-    splash.close_with_fade(200)
     player.show()
 
     # Cria o asyncio loop
