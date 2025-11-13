@@ -21,6 +21,7 @@
 ## ✨ Features
 
 ### 🎥 **Reprodução de Vídeo**
+
 - **Formatos Suportados**: `.mp4`, `.avi`, `.mkv`, `.dav`, `.dav_`
 - **Engine VLC**: Performance otimizada com configurações customizadas
 - **Alta Velocidade**: Reprodução até 32x sem perda de qualidade
@@ -28,6 +29,7 @@
 - **Auto-Pause Inteligente**: Pausas automáticas em vídeos longos (25%, 50%, 75%)
 
 ### 🎮 **Controles Avançados**
+
 - **Atalhos Customizáveis**: Sistema completo de keybinds configuráveis
 - **Velocidades Múltiplas**: 1x, 2x, 4x, 6x, 8x, 10x, 12x, 16x, 32x
 - **Volume Inteligente**: Controle com steps configuráveis
@@ -35,24 +37,28 @@
 - **Tela Cheia**: Modo fullscreen otimizado
 
 ### 🔍 **Sistema de Zoom**
+
 - **Zoom Digital**: Ampliação de 10x até 40x
 - **Área Selecionável**: Escolha da região de interesse
 - **Controles Visuais**: Interface intuitiva com sliders
 - **Posicionamento Livre**: Movimentação da área de zoom
 
 ### 📝 **Modal de Croqui**
+
 - **Visualização de Imagens**: Suporte a PNG, JPG, JPEG, BMP, GIF, TIFF, WebP
 - **Interface Adaptativa**: Redimensionamento automático por DPI
 - **Integração CLI**: Abertura via linha de comando
 - **Tema Escuro**: Interface consistente
 
 ### 📋 **Sistema de Playlist**
+
 - **Gerenciamento Visual**: Interface drag-and-drop
 - **Navegação Rápida**: Salto entre vídeos
 - **Indicador Visual**: Destaque do vídeo atual
 - **Organização**: Listagem estruturada
 
 ### ⚙️ **Configurações Avançadas**
+
 - **Temas Personalizáveis**: Cores e estilos configuráveis
 - **Keybinds Customizáveis**: Remapeamento completo de teclas
 - **Performance Tuning**: Configurações de cache e threading
@@ -61,18 +67,21 @@
 ## 🎯 Características Técnicas
 
 ### 🏗️ **Arquitetura**
+
 - **Thread-Safe**: Operações multi-thread seguras
 - **Event-Driven**: Sistema baseado em sinais Qt
 - **Modular**: Componentes independentes e reutilizáveis
 - **Extensível**: Arquitetura plugin-ready
 
 ### 🚀 **Performance**
+
 - **VLC Engine**: Backend otimizado para reprodução
 - **Hardware Acceleration**: Suporte a decodificação por hardware
 - **Cache Inteligente**: Sistema de buffer otimizado
 - **Memory Management**: Gerenciamento eficiente de recursos
 
 ### 🔒 **Confiabilidade**
+
 - **Error Handling**: Tratamento robusto de exceções
 - **Safe Shutdown**: Fechamento limpo com cleanup de recursos
 - **Thread Cleanup**: Finalização segura de threads daemon
@@ -81,28 +90,33 @@
 ## 🚀 Tecnologias
 
 ### **Frontend**
+
 - **PySide6**: Framework Qt6 para Python - Interface gráfica moderna
 - **Qt Widgets**: Componentes nativos de alta performance
 - **Qt Signals/Slots**: Sistema de comunicação thread-safe
 
 ### **Backend**
+
 - **Python 3.9+**: Linguagem principal
 - **VLC Python**: Binding para libVLC media player
 - **Threading**: Processamento paralelo e assíncrono
 - **AsyncIO**: Operações de rede não-bloqueantes
 
 ### **Sistema de Atualização**
+
 - **Flask API**: Servidor de atualizações
 - **HTTP Requests**: Download de updates
 - **Subprocess**: Gerenciamento de processos
 - **ZIP Compression**: Empacotamento de atualizações
 
 ### **Build & Deploy**
+
 - **PyInstaller**: Compilação para executável
 - **Inno Setup**: Instalador Windows profissional
 - **GitHub Actions**: CI/CD automatizado (configurável)
 
 ### **Utilitários**
+
 - **JSON**: Configurações e metadados
 - **OS Path**: Manipulação de arquivos multiplataforma
 - **ArgParse**: Interface de linha de comando
@@ -111,12 +125,14 @@
 ## ⚙️ Instalação
 
 ### **Pré-requisitos**
+
 ```bash
 Python 3.9+
 VLC Media Player (libVLC)
 ```
 
 ### **Instalação via Source**
+
 ```bash
 # Clone o repositório
 git clone https://github.com/Haxsc/PERPLAN-MEDIA-PLAYER.git
@@ -130,6 +146,7 @@ python main.py
 ```
 
 ### **Instalação via Executável**
+
 1. Baixe o instalador `PPL Player Setup.exe`
 2. Execute o instalador
 3. Siga o assistente de instalação
@@ -138,6 +155,7 @@ python main.py
 ## 🎮 Uso
 
 ### **Linha de Comando**
+
 ```bash
 # Reproduzir vídeo específico
 python main.py --video "caminho/para/video.mp4"
@@ -150,20 +168,22 @@ python main.py --croqui "esquema.jpg"
 ```
 
 ### **Atalhos de Teclado Padrão**
-| Função | Tecla |
-|--------|-------|
-| Play/Pause | `Space` |
-| Frame Anterior | `Q` |
-| Próximo Frame | `E` |
-| Retroceder 1s | `←` |
-| Avançar 1s | `→` |
-| Volume - | `↓` |
-| Volume + | `↑` |
-| Tela Cheia | `F` |
-| Velocidade - | `-` |
-| Velocidade + | `+` |
+
+| Função         | Tecla   |
+| -------------- | ------- |
+| Play/Pause     | `Space` |
+| Frame Anterior | `Q`     |
+| Próximo Frame  | `E`     |
+| Retroceder 1s  | `←`     |
+| Avançar 1s     | `→`     |
+| Volume -       | `↓`     |
+| Volume +       | `↑`     |
+| Tela Cheia     | `F`     |
+| Velocidade -   | `-`     |
+| Velocidade +   | `+`     |
 
 ### **Interface Gráfica**
+
 - **Abrir Vídeo**: Botão de abertura de arquivo
 - **Playlist**: Gerenciamento de lista de reprodução
 - **Configurações**: Acesso às preferências
@@ -173,6 +193,7 @@ python main.py --croqui "esquema.jpg"
 ## 🔧 Configuração
 
 ### **config.py - Configurações Principais**
+
 ```python
 # Performance
 UI_UPDATE_INTERVAL = 500  # ms
@@ -190,6 +211,7 @@ AUTO_PAUSE_POSITIONS = [0.25, 0.5, 0.75]
 ```
 
 ### **Personalização de Tema**
+
 ```python
 THEME_COLORS = {
     "background": "#181818",
@@ -204,12 +226,14 @@ THEME_COLORS = {
 ## 📡 Sistema de Atualizações
 
 ### **Auto-Update**
+
 - **Verificação Automática**: Check na inicialização
 - **Download Inteligente**: Progress bar com feedback visual
 - **Instalação Silenciosa**: Processo transparente ao usuário
 - **Rollback**: Capacidade de reverter atualizações
 
 ### **API de Updates**
+
 ```python
 # Endpoint de versão
 GET /mediaplayer/api/version
@@ -221,6 +245,7 @@ Response: update_package.zip
 ```
 
 ### **Fluxo de Atualização**
+
 1. **Verificação**: Compara versão local vs remota
 2. **Confirmação**: Dialog thread-safe para usuário
 3. **Download**: Progress visual com stages
@@ -231,12 +256,14 @@ Response: update_package.zip
 ## 🎨 Interface
 
 ### **Design System**
+
 - **Dark Theme**: Interface escura profissional
 - **Modern UI**: Componentes Qt6 estilizados
 - **Responsive**: Adaptação a diferentes resoluções
 - **Accessibility**: Controles acessíveis por teclado
 
 ### **Componentes Principais**
+
 - **Video Frame**: Área de reprodução com overlay de controles
 - **Control Bar**: Barra inferior com play, volume, timeline
 - **Menu Bar**: Acesso a funcionalidades avançadas
@@ -244,6 +271,7 @@ Response: update_package.zip
 - **Modal Dialogs**: Playlist, Zoom, Configurações, Croqui
 
 ### **Notificações**
+
 - **Toast Messages**: Feedback visual temporário
 - **Progress Dialogs**: Indicadores de progresso
 - **Error Handling**: Mensagens de erro elegantes
@@ -281,6 +309,7 @@ PPL-Player/
 ## 🔄 Sistema de Build
 
 ### **PyInstaller Configuration**
+
 ```python
 # PPL Player.spec
 a = Analysis(['main.py'],
@@ -299,6 +328,7 @@ a = Analysis(['main.py'],
 ```
 
 ### **Build Commands**
+
 ```bash
 # Compilar aplicação
 pyinstaller "PPL Player.spec"
@@ -311,6 +341,7 @@ pyinstaller "Updater/updater.spec"
 ```
 
 ### **Distribuição**
+
 - **Executável**: `dist/PPL Player.exe`
 - **Instalador**: `Output/PPL Player Setup.exe`
 - **Updater**: `dist/updater.exe` (incluído no pacote)
@@ -318,21 +349,24 @@ pyinstaller "Updater/updater.spec"
 ## 📊 Recursos do Sistema
 
 ### **Suporte a Formatos**
-| Tipo | Formatos |
-|------|----------|
-| **Vídeo** | MP4, AVI, MKV, DAV, DAV_ |
+
+| Tipo       | Formatos                             |
+| ---------- | ------------------------------------ |
+| **Vídeo**  | MP4, AVI, MKV, DAV, DAV\_            |
 | **Imagem** | PNG, JPG, JPEG, BMP, GIF, TIFF, WebP |
 
 ### **Requisitos de Sistema**
-| Componente | Especificação |
-|------------|---------------|
-| **OS** | Windows 10+ (64-bit) |
-| **RAM** | 4GB mínimo, 8GB recomendado |
-| **CPU** | Dual-core 2.0GHz+ |
-| **GPU** | DirectX compatible |
-| **HDD** | 500MB espaço livre |
+
+| Componente | Especificação               |
+| ---------- | --------------------------- |
+| **OS**     | Windows 10+ (64-bit)        |
+| **RAM**    | 4GB mínimo, 8GB recomendado |
+| **CPU**    | Dual-core 2.0GHz+           |
+| **GPU**    | DirectX compatible          |
+| **HDD**    | 500MB espaço livre          |
 
 ### **Performance Benchmarks**
+
 - **Startup Time**: < 2 segundos
 - **Video Loading**: < 1 segundo (arquivos locais)
 - **Memory Usage**: ~150MB em idle
@@ -341,6 +375,7 @@ pyinstaller "Updater/updater.spec"
 ## 🛠️ Desenvolvimento
 
 ### **Ambiente de Desenvolvimento**
+
 ```bash
 # Setup do ambiente
 python -m venv .venv
@@ -352,6 +387,7 @@ python main.py --debug
 ```
 
 ### **Arquitetura de Componentes**
+
 - **ModernVideoPlayer**: Classe principal do reprodutor
 - **UpdateChecker**: Sistema de atualizações thread-safe
 - **PlaylistModal**: Gerenciamento de playlists
@@ -359,6 +395,7 @@ python main.py --debug
 - **CroquiModal**: Visualizador de imagens
 
 ### **Padrões de Design**
+
 - **Singleton**: UpdateChecker global
 - **Observer**: Sistema de sinais Qt
 - **Factory**: Criação de componentes UI
@@ -367,11 +404,13 @@ python main.py --debug
 ## 📞 Suporte
 
 ### **Documentação**
+
 - **API Reference**: Documentação inline no código
 - **Configuration Guide**: Comentários detalhados em config.py
 - **Troubleshooting**: Logs detalhados para debug
 
 ### **Debugging**
+
 ```python
 # Ativar logs detalhados
 print("[APP] Informações de debug habilitadas")
@@ -380,6 +419,7 @@ traceback.print_exc()
 ```
 
 ### **Logs do Sistema**
+
 - `[APP]`: Eventos da aplicação principal
 - `[VIDEO_PLAYER]`: Eventos do reprodutor
 - `[UPDATER]`: Sistema de atualizações
@@ -387,7 +427,7 @@ traceback.print_exc()
 
 ---
 
-## 🏆 **PPL Player** - *Professional Video Analysis Made Simple*
+## 🏆 **PPL Player** - _Professional Video Analysis Made Simple_
 
 > Desenvolvido com ❤️ em Python | Powered by Qt6 & VLC
 
@@ -396,6 +436,7 @@ traceback.print_exc()
 ---
 
 ### 📈 **Estatísticas do Projeto**
+
 - **Linhas de Código**: ~2,500+
 - **Arquivos**: 15+ módulos Python
 - **Dependências**: PySide6, VLC-Python, Flask, Requests
