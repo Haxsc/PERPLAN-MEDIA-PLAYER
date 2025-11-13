@@ -44,12 +44,17 @@ class ModernVideoPlayer(QMainWindow):
             '--clock-jitter', '0',  # Reduz jitter do clock
             '--clock-synchro', '0',  # Desabilita sincronização do clock
             '--avcodec-hw', 'any',
+            '--no-plugins-cache',  # Não usa cache de plugins
+            '--no-stats',  # Não coleta estatísticas
         ]
     
 
         # Instância do VLC
         self.instance = vlc.Instance(vlc_args)
         self.mediaplayer = self.instance.media_player_new()
+        
+        # Flag para controlar se já estamos fechando
+        self.is_closing = False
 
         # Configurações de teclas - usando configuração padrão
         self.keybinds = DEFAULT_KEYBINDS.copy()
@@ -535,6 +540,10 @@ class ModernVideoPlayer(QMainWindow):
 
     def update_ui(self):
         """Update UI elements with current playback information."""
+        # Não atualiza se estiver fechando
+        if hasattr(self, 'is_closing') and self.is_closing:
+            return
+            
         if not self.mediaplayer.is_playing():
             return
             
@@ -675,3 +684,69 @@ class ModernVideoPlayer(QMainWindow):
         """Define o nível de zoom no vídeo"""
         self.mediaplayer.video_set_scale(scale)
         self.notification(f"Zoom ajustado para {scale:.1f}x", "green")
+    
+    def closeEvent(self, event):
+        """Trata o fechamento seguro do aplicativo"""
+        # Evita múltiplas chamadas
+        if hasattr(self, 'is_closing') and self.is_closing:
+            event.accept()
+            return
+        
+        self.is_closing = True
+        
+        try:
+            print("[VIDEO_PLAYER] Iniciando fechamento...")
+            
+            # Para qualquer reprodução antes de fechar
+            if hasattr(self, 'mediaplayer') and self.mediaplayer:
+                try:
+                    # Para a reprodução primeiro
+                    self.mediaplayer.pause()
+                    print("[VIDEO_PLAYER] Reprodução pausada")
+                except Exception as e:
+                    print(f"[VIDEO_PLAYER] Erro ao pausar: {e}")
+            
+            # Desconecta o timer antes de parar
+            if hasattr(self, 'timer') and self.timer:
+                try:
+                    self.timer.timeout.disconnect()
+                except:
+                    pass
+                try:
+                    self.timer.stop()
+                    print("[VIDEO_PLAYER] Timer parado")
+                except Exception as e:
+                    print(f"[VIDEO_PLAYER] Erro ao parar timer: {e}")
+            
+            # Para o media player de forma segura
+            if hasattr(self, 'mediaplayer') and self.mediaplayer:
+                try:
+                    # Remove o widget antes de parar
+                    self.mediaplayer.set_hwnd(None)
+                    print("[VIDEO_PLAYER] Widget VLC removido")
+                except Exception as e:
+                    print(f"[VIDEO_PLAYER] Erro ao remover widget: {e}")
+                
+                try:
+                    self.mediaplayer.stop()
+                    print("[VIDEO_PLAYER] Media player parado")
+                except Exception as e:
+                    print(f"[VIDEO_PLAYER] Erro ao parar media player: {e}")
+                
+                try:
+                    # Libera recursos do VLC
+                    if hasattr(self, 'instance') and self.instance:
+                        self.instance.release()
+                        print("[VIDEO_PLAYER] Instância VLC liberada")
+                except Exception as e:
+                    print(f"[VIDEO_PLAYER] Erro ao liberar VLC: {e}")
+            
+            print("[VIDEO_PLAYER] Fechamento concluído com sucesso")
+            event.accept()
+            
+        except Exception as e:
+            print(f"[VIDEO_PLAYER] Erro durante fechamento: {e}")
+            import traceback
+            traceback.print_exc()
+            # Aceita o evento mesmo com erro para não travar
+            event.accept()
